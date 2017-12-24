@@ -22,7 +22,7 @@ public class ZookeeperUtils {
 	
 	
 	/**
-	 * create he path to node at given depth
+	 * create the path to node at given depth
 	 * 
 	 * @param depthStr - the depth as string.
 	 * 
@@ -128,8 +128,14 @@ public class ZookeeperUtils {
 		String dataAsString = new String(dataAsBytes, StandardCharsets.UTF_8);
 		return gson.fromJson(dataAsString, cls);
 	} 
+
 	
-//	public static void waitForNodeDeletion(...) {} //this function return only when the node was deleted.
-	
-	
+	public static void waitForNodeDeletion(ZooKeeper zk, String path, Object mutex) throws KeeperException, InterruptedException { //this function return only when the node was deleted.
+		synchronized (mutex) {
+			Stat stat = zk.exists(path, true);
+	        if (stat != null) {
+	            mutex.wait();
+	        } 
+		}
+	} 
 }
