@@ -1,4 +1,4 @@
-package utils;
+package blockchain.server.zoo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -14,7 +14,7 @@ import org.apache.zookeeper.data.Stat;
 
 import com.google.gson.Gson;
 
-import blockchain.Block;
+import blockchain.server.model.Block;
 
 public class ZookeeperUtils {
 	public static String TEMP_NODE_PREFIX = "__";

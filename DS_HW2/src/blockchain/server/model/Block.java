@@ -1,4 +1,4 @@
-package blockchain;
+package blockchain.server.model;
 
 
 public class Block {

@@ -1,4 +1,4 @@
-package blockchain;
+package blockchain.server.zoo;
 
 import java.io.IOException;
 
