@@ -3,9 +3,10 @@ package blockchain.server;
 import blockchain.server.group.BlockHandler;
 import blockchain.server.group.GroupServers;
 import blockchain.server.group.Operation;
-import blockchain.server.group.Transaction;
-import blockchain.server.group.TransactionResult;
+import blockchain.server.model.SupplyChainObject;
 import blockchain.server.model.SupplyChainView;
+import blockchain.server.model.Transaction;
+import blockchain.server.model.TransactionResult;
 import blockchain.server.zoo.ZooKeeperHandler;
 
 
@@ -71,23 +72,23 @@ public class DsTechShipping {
 	//#############################################################
 	
 	public TransactionResult createShip(String id, String docId) throws InterruptedException {
-		return addTransaction(new Transaction(id, Operation.CREATE, new String[]{docId}));
+		return addTransaction(new Transaction(id, Operation.CREATE, docId, new String[]{SupplyChainObject.SHIP}));
 	}
 	
 	public TransactionResult createContainer(String id, String shipId, String docId) throws InterruptedException {
-		return addTransaction(new Transaction(id, Operation.CREATE, new String[]{shipId, docId}));
+		return addTransaction(new Transaction(id, Operation.CREATE, shipId, new String[]{SupplyChainObject.CONTAINER}));
 	}
 	
 	public TransactionResult createItem(String id, String containerId, String shipId, String docId) throws InterruptedException {
-		return addTransaction(new Transaction(id, Operation.CREATE, new String[]{containerId, shipId, docId}));
+		return addTransaction(new Transaction(id, Operation.CREATE, containerId, new String[]{SupplyChainObject.ITEM}));
 	}
 	
 	public TransactionResult deleteSupplyChainObject(String id) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.DELETE));
 	}
 	
-	public TransactionResult moveSupplyChainObject(String id, String src, String dst) throws InterruptedException {
-		return addTransaction(new Transaction(id, Operation.MOVE, src, dst));
+	public TransactionResult moveSupplyChainObject(String id, String src, String trg) throws InterruptedException {
+		return addTransaction(new Transaction(id, Operation.MOVE, src, trg));
 	}
 	
 	void getShipState() {}

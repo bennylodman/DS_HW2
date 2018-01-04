@@ -2,6 +2,8 @@ package blockchain.server.group;
 
 import java.util.List;
 
+import blockchain.server.model.SupplyChainMessage;
+
 public class ResponseHolder {
 	private String id;
 	private Object lock;

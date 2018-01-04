@@ -1,8 +1,10 @@
 package blockchain.server.model;
 
-import blockchain.server.group.TransactionResult;
-
 public abstract class SupplyChainObject {
+	public static String ITEM = "Item";
+	public static String CONTAINER = "Container";
+	public static String SHIP = "Ship";
+	
 	protected String id;
 	protected boolean deleted;
 

@@ -1,4 +1,4 @@
-package blockchain.server.group;
+package blockchain.server.model;
 
 
 public class TransactionResult {

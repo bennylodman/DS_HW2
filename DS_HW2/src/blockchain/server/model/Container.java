@@ -3,7 +3,6 @@ package blockchain.server.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import blockchain.server.group.TransactionResult;
 import utils.GeneralUtilities;
 
 public class Container extends SupplyChainObject {
@@ -14,13 +13,14 @@ public class Container extends SupplyChainObject {
 	private String doc;
 	
 	public Container(String containerId) {
-		this(containerId, null);
+		this(containerId, null, null);
 	}
 	
-	public Container(String containerId, String shipId) {
+	public Container(String containerId, String shipId, String docId) {
 		super.id = containerId;
 		super.deleted = false;
 		this.ship = shipId;
+		this.doc = docId;
 		this.items = new HashSet<>();
 	}
 	
@@ -64,54 +64,67 @@ public class Container extends SupplyChainObject {
 		return GeneralUtilities.deepCopy(this, Container.class);
 	}
 	
-	public void delete(SupplyChainView view) {
-		synchronized (view) {
-			Ship ship = ((Ship) view.getObjectState(this.ship)).deepCopy();
-			Container containerNextState = this.deepCopy(); 
+	public void updateItemsState(SupplyChainView view, String newShipId, String newDocId) {
+		for (String itemId : this.items) {
+			Item itemNextState = ((Item) view.getObjectState(itemId)).deepCopy();
 			
-			containerNextState.setShip("None");
-			containerNextState.setDoc("None");
-			containerNextState.setDeleted(true);
-			ship.removeContainer(containerNextState.getId());
+			if (newShipId != null)
+				itemNextState.setShip(newShipId);
 			
-			view.addNextState(containerNextState);
-			view.addNextState(ship);
+			if (newDocId != null)
+				itemNextState.setDoc(newDocId);
+			
+			view.addNextState(itemNextState);
 		}
+	}
+	
+	public static TransactionResult verifyCreate(String id, String shipId, SupplyChainView view) {
+		if (id == null || !id.startsWith(Container.PREFIX))
+			return new TransactionResult(false, "ERROR: " + id + " is invalid container ID");
+		
+		if (shipId == null || !shipId.startsWith(Ship.PREFIX))
+			return new TransactionResult(false, "ERROR: " + shipId + " is invalid container ID");
+		
+		if (view.hasObject(id))
+			return new TransactionResult(false, "ERROR: The system already contain an object with ID: " + id);
+		
+		if (!view.hasObject(shipId))
+			return new TransactionResult(false, "ERROR: The system does not contain an object with ID: " + shipId);
+		
+		return new TransactionResult(true, "OK");
+	}
+	
+	public static void create(String id, String shipId, SupplyChainView view) {
+		Ship ship = ((Ship) view.getObjectState(shipId)).deepCopy();
+		Container container = new Container(id, ship.getId(), ship.getDoc());
+		
+		ship.addContainer(id);
+		
+		view.createObject(container);;
+		view.addNextState(ship);
 	}
 	
 	public TransactionResult verifyDelete(SupplyChainView view) {
-		synchronized (view) {
-			if (this.id == null || !this.id.startsWith(Container.PREFIX))
-				return new TransactionResult(false, "ERROR: " + id + " is invalid container ID");
-			
-			if (!view.hasObject(this.id))
-				return new TransactionResult(false, "ERROR: The system does not contain an object with ID: " + this.id);
-			
-			if (this.isDeleted())
-				return new TransactionResult(false, "ERROR: The object " + this.id + " has already been deleted");
-			
-			Container container = ((Container) view.getObjectState(this.id));
-			if (!container.isEmpty())
-				return new TransactionResult(false, "ERROR: The container " + this.id + " is not empty");
-			
-			return new TransactionResult(true, "OK");
-		}
+		if (this.isDeleted())
+			return new TransactionResult(false, "ERROR: The object " + this.id + " has already been deleted");
+		
+		if (!this.isEmpty())
+			return new TransactionResult(false, "ERROR: The container " + this.id + " is not empty");
+		
+		return new TransactionResult(true, "OK");
 	}
 	
-	public void updateItemsState(SupplyChainView view, String newShipId, String newDocId) {
-		synchronized (view) {
-			for (String itemId : this.items) {
-				Item itemNextState = ((Item) view.getObjectState(itemId)).deepCopy();
-				
-				if (newShipId != null)
-					itemNextState.setShip(newShipId);
-				
-				if (newDocId != null)
-					itemNextState.setDoc(newDocId);
-				
-				view.addNextState(itemNextState);
-			}
-		}
+	public void delete(SupplyChainView view) {
+		Ship ship = ((Ship) view.getObjectState(this.ship)).deepCopy();
+		Container containerNextState = this.deepCopy(); 
+		
+		containerNextState.setShip("None");
+		containerNextState.setDoc("None");
+		containerNextState.setDeleted(true);
+		ship.removeContainer(containerNextState.getId());
+		
+		view.addNextState(containerNextState);
+		view.addNextState(ship);
 	}
 	
 	public TransactionResult verifyMove(String src, String trg, SupplyChainView currentView) {
@@ -148,21 +161,19 @@ public class Container extends SupplyChainObject {
 		return new TransactionResult(true, "OK");
 	}
 	
-	public void move(String src, String trg, SupplyChainView currentView) {
-		synchronized (currentView) {
-			Ship srcShip = ((Ship) currentView.getObjectState(src)).deepCopy();
-			Ship trgShip = ((Ship) currentView.getObjectState(trg)).deepCopy();
-			Container containerNextState = this.deepCopy();
-			
-			containerNextState.setShip(trgShip.getId());
-			containerNextState.updateItemsState(currentView, trgShip.getId(), null);
-			srcShip.removeContainer(getId());
-			trgShip.addContainer(getId());
-			
-			currentView.addNextState(containerNextState);
-			currentView.addNextState(srcShip);
-			currentView.addNextState(trgShip);
-		}
+	public void move(String src, String trg, SupplyChainView view) {
+		Ship srcShip = ((Ship) view.getObjectState(src)).deepCopy();
+		Ship trgShip = ((Ship) view.getObjectState(trg)).deepCopy();
+		Container containerNextState = this.deepCopy();
+		
+		containerNextState.setShip(trgShip.getId());
+		containerNextState.updateItemsState(view, trgShip.getId(), null);
+		srcShip.removeContainer(getId());
+		trgShip.addContainer(getId());
+		
+		view.addNextState(containerNextState);
+		view.addNextState(srcShip);
+		view.addNextState(trgShip);
 	}
 }
 

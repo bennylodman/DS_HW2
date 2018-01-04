@@ -3,7 +3,14 @@ package blockchain.server.group;
 import java.util.ArrayList;
 import java.util.List;
 
-import utils.Tuple;
+import blockchain.server.model.Container;
+import blockchain.server.model.Item;
+import blockchain.server.model.Ship;
+import blockchain.server.model.SupplyChainMessage;
+import blockchain.server.model.SupplyChainObject;
+import blockchain.server.model.SupplyChainView;
+import blockchain.server.model.Transaction;
+import blockchain.server.model.TransactionResult;
 
 
 
@@ -18,22 +25,29 @@ public class BlockHandler {
 		this.waitingThreadObjects = new ArrayList<>();
 	}
 	
-	public TransactionResult addTransaction(Transaction trans) throws InterruptedException {
+	public TransactionResult addTransaction(Transaction trans) {
 		if (!open) 
 			return null;
 		
 		scMessage.addTransaction(trans);
 		WaitingObject waitingObj = new WaitingObject();
 		waitingThreadObjects.add(waitingObj);
-		waitingObj.getLock().wait();
+		
+		while (!waitingObj.isDone()) {
+			try {
+				waitingObj.getLock().wait();
+			} catch (InterruptedException e) {}
+		}
+		
 		return waitingObj.getResult();
 	}
 	
-	public void notifyTransaction(int transIndex, boolean resStatus, String resMessage) throws InterruptedException {
+	public void notifyTransaction(int transIndex, boolean resStatus, String resMessage) {
 		scMessage.removeTransactione(transIndex);
 		WaitingObject waitingObj = waitingThreadObjects.get(transIndex);
-		waitingObj.setResult(resStatus, resMessage);
 		waitingThreadObjects.remove(transIndex);
+		waitingObj.setResult(resStatus, resMessage);
+		waitingObj.done();
 		waitingObj.getLock().notify();
 	}
 	
@@ -48,16 +62,84 @@ public class BlockHandler {
 	public int size() {
 		return this.scMessage.getTransactions().size();
 	}
+	
+	
+	//This operation not lock the view database because this view is a local copy of the current view, which accessed only by on thread.
+	public void verifyBlock(SupplyChainView view) {
+		List<Transaction> transList = this.scMessage.getTransactions();
+		int transListSize = transList.size();
+		int discountSize = 0;
+		
+		for (int i = 0; i < transListSize - discountSize; i++) {
+			Transaction trans = transList.get(i);
+			
+			if (!view.hasObject(trans.getObjectId()) && trans.getOperationType() != Operation.CREATE) {
+				notifyTransaction(i, false, "ERROR: The system does not contain an object with ID: " + trans.getObjectId());
+				i--;
+				discountSize++;
+				continue;
+			}
+			
+			TransactionResult res = null;
+			switch (trans.getOperationType()) {
+				case MOVE: {
+					SupplyChainObject obj = view.getObjectState(trans.getObjectId());
+					res = obj.verifyMove(trans.getSource(), trans.getTarget(), view);
+					if (res.getStatus()) {
+						obj.move(trans.getSource(), trans.getTarget(), view);
+					}
+					break;
+				}
+				
+				case CREATE: {
+					if (trans.getArgs()[0].equals(SupplyChainObject.ITEM)) {
+						res = Item.verifyCreate(trans.getObjectId(), trans.getTarget(), view);
+						if (res.getStatus()) {
+							Item.create(trans.getObjectId(), trans.getTarget(), view);
+						}
+					} else if (trans.getArgs()[0].equals(SupplyChainObject.CONTAINER)) {
+						res = Container.verifyCreate(trans.getObjectId(), trans.getTarget(), view);
+						if (res.getStatus()) {
+							Container.create(trans.getObjectId(), trans.getTarget(), view);
+						}
+					} else if (trans.getArgs()[0].equals(SupplyChainObject.SHIP)) {
+						res = Ship.verifyCreate(trans.getObjectId(), trans.getTarget(), view);
+						if (res.getStatus()) {
+							Ship.create(trans.getObjectId(), trans.getTarget(), view);
+						}
+					}
+					break;
+				}
+				
+				case DELETE: {
+					SupplyChainObject obj = view.getObjectState(trans.getObjectId());
+					res = obj.verifyDelete(view);
+					if (res.getStatus()) {
+						obj.delete(view);
+					}
+					break;
+				}
+			}
+			
+			if (!res.getStatus()) {
+				notifyTransaction(i, res.getStatus(), res.getMessage());
+				i--;
+				discountSize++;
+			}
+		}
+	}
 }
 
 
 class WaitingObject {
+	private boolean done;
 	private Object lock;
 	private TransactionResult result;
 	
 	public WaitingObject() {
 		this.lock = new Object();
 		this.result = new TransactionResult();
+		this.done = false;
 	}
 	
 	public Object getLock() {
@@ -87,5 +169,13 @@ class WaitingObject {
 
 	public String getResultMessage() {
 		return this.result.getMessage();
+	}
+	
+	public synchronized void done() {
+		this.done = true;
+	}
+	
+	public synchronized boolean isDone() {
+		return this.done;
 	}
 }

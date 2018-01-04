@@ -7,22 +7,19 @@ import org.jgroups.ReceiverAdapter;
 import com.google.gson.Gson;
 
 import blockchain.server.model.Block;
+import blockchain.server.model.SupplyChainMessage;
 
 public class GroupServers extends ReceiverAdapter {
 	private static Gson gson = new Gson();
 	
 	private JChannel channel;
-	private String userName = System.getProperty("user.name", "n/a");
+	private String serverName = System.getProperty("user.name", "n/a");
 	
 	
-	public GroupServers() {
-		try {
-			channel = new JChannel("config/tcp.xml");
-			channel.setReceiver(this);
-			channel.connect("GroupServers");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public GroupServers() throws Exception {
+		channel = new JChannel("config/tcp.xml");
+		channel.setReceiver(this);
+		channel.connect("GroupServers");
 	}
 	
 	public JChannel getChannel() {
@@ -33,12 +30,8 @@ public class GroupServers extends ReceiverAdapter {
 		this.channel = channel;
 	}
 
-	public String getUserName() {
-		return userName;
-	}
-
-	public void setUserName(String user) {
-		this.userName = user;
+	public String getServerName() {
+		return serverName;
 	}
 
 	public void receive(Message msg) {

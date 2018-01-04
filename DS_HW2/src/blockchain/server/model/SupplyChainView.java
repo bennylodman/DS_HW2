@@ -5,21 +5,30 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.Gson;
-
-import blockchain.server.model.Container;
 import blockchain.server.model.SupplyChainObject;
+import utils.ReadersWritersLock;
 
 public class SupplyChainView {
 	private Map<String, List<SupplyChainObject>> systemObjects;
+	private ReadersWritersLock rwl;
 	
 	public SupplyChainView() {
 		this.systemObjects = new HashMap<>();
+		this.rwl = new ReadersWritersLock();
 	}
 	
+	public ReadersWritersLock getRWLock() {
+		return rwl;
+	}
+
+	public void setRWLock(ReadersWritersLock rwl) {
+		this.rwl = rwl;
+	}
+
 	public void createObject(SupplyChainObject scObject) {
-		if (systemObjects.containsKey(scObject.getId())) 
+		if (systemObjects.containsKey(scObject.getId())) {
 			return;
+		}
 		
 		List<SupplyChainObject> history = new LinkedList<SupplyChainObject>();
 		history.add(scObject);
@@ -52,13 +61,14 @@ public class SupplyChainView {
 		systemObjects.get(obj.getId()).add(obj);
 	}
 	
-//	public SupplyChainObject createNextState(String id) { //create next node by doing deep copy of the current last state
-//		List<SupplyChainObject> history = localObjects.get(id);
-//		SupplyChainObject currentState =  history.get(history.size() - 1);
-//		SupplyChainObject newState = deepCopy(currentState, SupplyChainObject.class);
-//		history.add(newState);
-//		return newState;
-//	}
-	
-
+	public SupplyChainView getCurrentView() {
+		final SupplyChainView currentView = new SupplyChainView();
+		
+		this.systemObjects.forEach((id, hist) -> {
+			SupplyChainObject obj = hist.get(hist.size() - 1);
+			currentView.createObject(obj.deepCopy());
+		});
+		
+		return currentView;
+	}
 }

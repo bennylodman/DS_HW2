@@ -1,5 +1,6 @@
-package blockchain.server.group;
+package blockchain.server.model;
 
+import blockchain.server.group.Operation;
 
 public class Transaction {
 	private String objectId;
@@ -10,18 +11,18 @@ public class Transaction {
 	
 	
 	public Transaction(String objectId, Operation op) {
-		this.objectId = objectId;
-		this.operationType = op;
-		this.source = null;
-		this.target = null;
-		this.args = null;
+		this(objectId, op, null);
 	}
 	
 	public Transaction(String objectId, Operation op, String[] args) {
+		this(objectId, op, null, args);
+	}
+	
+	public Transaction(String objectId, Operation op, String trg, String[] args) {
 		this.objectId = objectId;
 		this.operationType = op;
 		this.source = null;
-		this.target = null;
+		this.target = trg;
 		this.args = args;
 	}
 	

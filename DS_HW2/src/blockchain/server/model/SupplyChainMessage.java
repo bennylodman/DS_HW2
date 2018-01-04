@@ -1,7 +1,9 @@
-package blockchain.server.group;
+package blockchain.server.model;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import blockchain.server.group.MessageType;
 
 public class SupplyChainMessage {
 	private String blockName;
@@ -60,4 +62,34 @@ public class SupplyChainMessage {
 		this.transactions.remove(index);
 	}
 	
+	public void applyTransactions(SupplyChainView view) {
+		view.getRWLock().acquireWrite();
+		for (Transaction trans : getTransactions()) {
+			switch (trans.getOperationType()) {
+				case MOVE: {
+					SupplyChainObject obj = view.getObjectState(trans.getObjectId());
+					obj.move(trans.getSource(), trans.getTarget(), view);
+					break;
+				}
+				
+				case CREATE: {
+					if (trans.getArgs()[0].equals(SupplyChainObject.ITEM)) {
+						Item.create(trans.getObjectId(), trans.getTarget(), view);
+					} else if (trans.getArgs()[0].equals(SupplyChainObject.CONTAINER)) {
+						Container.create(trans.getObjectId(), trans.getTarget(), view);
+					} else if (trans.getArgs()[0].equals(SupplyChainObject.SHIP)) {
+						Ship.create(trans.getObjectId(), trans.getTarget(), view);
+					}
+					break;
+				}
+				
+				case DELETE: {
+					SupplyChainObject obj = view.getObjectState(trans.getObjectId());
+					obj.delete(view);
+					break;
+				}
+			}
+		}
+		view.getRWLock().releaseWrite();
+	}
 }
