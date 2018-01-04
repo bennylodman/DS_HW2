@@ -31,7 +31,7 @@ public class DsTechShipping {
 	}
 	
 	public static void setZooKeeperHandler(ZooKeeperHandler zkh) {
-		this.zkHandler = zkh;
+		DsTechShipping.zkHandler = zkh;
 	}
 	
 	public static GroupServers getGroupServers() {
@@ -39,7 +39,7 @@ public class DsTechShipping {
 	}
 	
 	public static void setGroupServers(GroupServers gs) {
-		this.groupServers = gs;
+		DsTechShipping.groupServers = gs;
 	}
 	
 	public static SupplyChainView getBlockChainView() {
@@ -47,7 +47,7 @@ public class DsTechShipping {
 	}
 	
 	public static void setBlockChainView(SupplyChainView view) {
-		this.view = view;
+		DsTechShipping.view = view;
 	}
 	
 	public static BlockHandler getBlocksHandler() {
@@ -55,7 +55,7 @@ public class DsTechShipping {
 	}
 
 	public static void setBlockHandler(BlockHandler block) {
-		this.blocksHandler = block;
+		DsTechShipping.blocksHandler = block;
 	}
 	
 	public static TransactionResult addTransaction(Transaction trans) throws InterruptedException {

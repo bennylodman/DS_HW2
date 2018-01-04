@@ -43,5 +43,4 @@ public class GroupServers extends ReceiverAdapter {
 		}
 	}
 
-	public
 }
