@@ -7,17 +7,18 @@ import blockchain.server.group.MessageType;
 
 public class SupplyChainMessage {
 	private String blockName;
-	private Integer depth;
+	private String sendersName;
+	private String targetName;
+	private int depth;
 	private MessageType type;
 	private List<Transaction> transactions;
 	
 	public SupplyChainMessage(MessageType type) {
-		this(null, null, type);
+		this(null, type);
 	}
 	
-	public SupplyChainMessage(String blockName, Integer depth, MessageType type) {
+	public SupplyChainMessage(String blockName, MessageType type) {
 		this.blockName = blockName;
-		this.depth = depth;
 		this.type = type;
 		this.transactions = new ArrayList<>();
 	}
@@ -28,14 +29,6 @@ public class SupplyChainMessage {
 	
 	public void setBlockName(String blockName) {
 		this.blockName = blockName;
-	}
-	
-	public int getDepth() {
-		return depth;
-	}
-	
-	public void setDepth(int depth) {
-		this.depth = depth;
 	}
 	
 	public MessageType getType() {
@@ -62,6 +55,30 @@ public class SupplyChainMessage {
 		this.transactions.remove(index);
 	}
 	
+	public String getSendersName() {
+		return sendersName;
+	}
+
+	public void setSendersName(String sendersName) {
+		this.sendersName = sendersName;
+	}
+
+	public String getTargetName() {
+		return targetName;
+	}
+
+	public void setTargetName(String targetName) {
+		this.targetName = targetName;
+	}
+	
+	public int getDepth() {
+		return depth;
+	}
+
+	public void setDepth(int depth) {
+		this.depth = depth;
+	}
+
 	public void applyTransactions(SupplyChainView view) {
 		view.getRWLock().acquireWrite();
 		for (Transaction trans : getTransactions()) {

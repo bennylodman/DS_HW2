@@ -1,5 +1,6 @@
 package blockchain.server.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,11 +11,21 @@ import utils.ReadersWritersLock;
 
 public class SupplyChainView {
 	private Map<String, List<SupplyChainObject>> systemObjects;
+	private String knownBlocksPath;
+	private int knownBlocksDepth;
+	private List<SupplyChainMessage> blockChain;
 	private ReadersWritersLock rwl;
 	
 	public SupplyChainView() {
-		this.systemObjects = new HashMap<>();
-		this.rwl = new ReadersWritersLock();
+		this(0, "/");
+	}
+	
+	public SupplyChainView(int knownBlocksDepth, String knownBlocksPath) {
+		systemObjects = new HashMap<>();
+		rwl = new ReadersWritersLock();
+		this.knownBlocksPath = knownBlocksPath;
+		this.knownBlocksDepth = knownBlocksDepth;
+		blockChain = new ArrayList<>();
 	}
 	
 	public ReadersWritersLock getRWLock() {
@@ -24,7 +35,36 @@ public class SupplyChainView {
 	public void setRWLock(ReadersWritersLock rwl) {
 		this.rwl = rwl;
 	}
+	
+	public String getKnownBlocksPath() {
+		synchronized (blockChain) {
+			return knownBlocksPath;
+		}
+	}
+ 
+	public int getKnownBlocksDepth() {
+		synchronized (blockChain) {
+			return knownBlocksDepth;
+		}
+	}
 
+	public void addToBlockChain(SupplyChainMessage block) {
+		synchronized (blockChain) {
+			if (block.getDepth() != this.knownBlocksDepth + 1)
+				return;
+			
+			blockChain.add(block);
+			knownBlocksPath = knownBlocksPath + "/" + block.getBlockName();
+			this.knownBlocksDepth++;
+		}
+	}
+	
+	public SupplyChainMessage getFromBlockChain(int index) {
+		synchronized (blockChain) {
+			return blockChain.get(index);
+		}
+	}
+	
 	public void createObject(SupplyChainObject scObject) {
 		if (systemObjects.containsKey(scObject.getId())) {
 			return;
@@ -62,7 +102,7 @@ public class SupplyChainView {
 	}
 	
 	public SupplyChainView getCurrentView() {
-		final SupplyChainView currentView = new SupplyChainView();
+		final SupplyChainView currentView = new SupplyChainView(this.getKnownBlocksDepth(), this.getKnownBlocksPath());
 		
 		this.systemObjects.forEach((id, hist) -> {
 			SupplyChainObject obj = hist.get(hist.size() - 1);

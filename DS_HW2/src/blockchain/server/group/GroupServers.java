@@ -10,8 +10,6 @@ import blockchain.server.model.Block;
 import blockchain.server.model.SupplyChainMessage;
 
 public class GroupServers extends ReceiverAdapter {
-	private static Gson gson = new Gson();
-	
 	private JChannel channel;
 	private String serverName = System.getProperty("user.name", "n/a");
 	
