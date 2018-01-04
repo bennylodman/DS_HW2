@@ -11,59 +11,56 @@ import blockchain.server.zoo.ZooKeeperHandler;
 
 
 public class DsTechShipping {
-	
-	private ZooKeeperHandler zkHandler;
-	private GroupServers groupServers;
-	private SupplyChainView view;
-	private BlockHandler[] blocksHandlers; // always contains 2 blocks and exactly one block is open at any time.
-	
+
+	public static Integer MaxServersCrushSupport = 1;
+	public static ZooKeeperHandler zkHandler;
+	public static GroupServers groupServers;
+	public static SupplyChainView view;
+	public static BlockHandler blocksHandler; // always contains 2 blocks and exactly one block is open at any time.
+	public static Object blockHandlerLock;
+
 	public DsTechShipping() {
 		//TODO: initialize zookeeper and jGroup
 		
-		this.blocksHandlers = new BlockHandler[]{new BlockHandler(true), new BlockHandler(false)};
+		this.blocksHandler = new BlockHandler();
+		this.blockHandlerLock = new Object();
 	}
 	
-	public ZooKeeperHandler getZooKeeperHandler() {
+	public static ZooKeeperHandler getZooKeeperHandler() {
 		return zkHandler;
 	}
 	
-	public void setZooKeeperHandler(ZooKeeperHandler zkh) {
+	public static void setZooKeeperHandler(ZooKeeperHandler zkh) {
 		this.zkHandler = zkh;
 	}
 	
-	public GroupServers getGroupServers() {
+	public static GroupServers getGroupServers() {
 		return groupServers;
 	}
 	
-	public void setGroupServers(GroupServers gs) {
+	public static void setGroupServers(GroupServers gs) {
 		this.groupServers = gs;
 	}
 	
-	public SupplyChainView getBlockChainView() {
+	public static SupplyChainView getBlockChainView() {
 		return view;
 	}
 	
-	public void setBlockChainView(SupplyChainView view) {
+	public static void setBlockChainView(SupplyChainView view) {
 		this.view = view;
 	}
 	
-	public BlockHandler[] getBlocksHandler() {
-		return blocksHandlers;
+	public static BlockHandler getBlocksHandler() {
+		return blocksHandler;
 	}
 
-	public void setBlocksHandler(BlockHandler[] blocks) {
-		this.blocksHandlers = blocks;
+	public static void setBlockHandler(BlockHandler block) {
+		this.blocksHandler = block;
 	}
 	
-	public TransactionResult addTransaction(Transaction trans) throws InterruptedException {
-		synchronized (blocksHandlers) {
-			TransactionResult res = null;
-			for (int i = 0; i < blocksHandlers.length; i++) {
-				if (blocksHandlers[i].isOpen()) {
-					res = blocksHandlers[i].addTransaction(trans);
-				}
-			}
-			return res;
+	public static TransactionResult addTransaction(Transaction trans) throws InterruptedException {
+		synchronized (blockHandlerLock) {
+			return blocksHandler.addTransaction(trans);
 		}
 	}
 	
@@ -71,23 +68,23 @@ public class DsTechShipping {
 	// REST back-end
 	//#############################################################
 	
-	public TransactionResult createShip(String id, String docId) throws InterruptedException {
+	public static TransactionResult createShip(String id, String docId) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.CREATE, docId, new String[]{SupplyChainObject.SHIP}));
 	}
 	
-	public TransactionResult createContainer(String id, String shipId, String docId) throws InterruptedException {
+	public static TransactionResult createContainer(String id, String shipId, String docId) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.CREATE, shipId, new String[]{SupplyChainObject.CONTAINER}));
 	}
 	
-	public TransactionResult createItem(String id, String containerId, String shipId, String docId) throws InterruptedException {
+	public static TransactionResult createItem(String id, String containerId, String shipId, String docId) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.CREATE, containerId, new String[]{SupplyChainObject.ITEM}));
 	}
 	
-	public TransactionResult deleteSupplyChainObject(String id) throws InterruptedException {
+	public  static TransactionResult deleteSupplyChainObject(String id) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.DELETE));
 	}
 	
-	public TransactionResult moveSupplyChainObject(String id, String src, String trg) throws InterruptedException {
+	public static TransactionResult moveSupplyChainObject(String id, String src, String trg) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.MOVE, src, trg));
 	}
 	

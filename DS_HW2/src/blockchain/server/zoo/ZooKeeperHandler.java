@@ -34,7 +34,7 @@ public class ZooKeeperHandler implements Watcher {
 	 * - verify that the path is to the end of the chain and that it is the smallest son added
 	 *
 	 * @param path - path to the last znode in the block chain.
-	 * @param data - json string of Block Header (Server Id, Block id).
+	 * @param data - json string of BlockHeader Header (Server Id, BlockHeader id).
 	 * @param depth - current block chain length
 	 *
 	 * @return the actual path of the created node

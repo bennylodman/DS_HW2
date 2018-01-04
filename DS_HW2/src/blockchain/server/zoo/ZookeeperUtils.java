@@ -1,18 +1,14 @@
 package blockchain.server.zoo;
 
-import blockchain.server.model.Block;
 import com.google.gson.Gson;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooDefs.Perms;
 import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ZookeeperUtils {
@@ -51,7 +47,7 @@ public class ZookeeperUtils {
 	 * created  znode after the node which specified at 'path'
 	 * 
 	 * @param path - path to the znode which we want to add block after it.
-	 * @param data - json string of Block class header.
+	 * @param data - json string of BlockHeader class header.
 	 * 
 	 * @return the actual path of the created node
 	 */

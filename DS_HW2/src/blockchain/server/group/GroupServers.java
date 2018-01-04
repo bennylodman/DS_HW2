@@ -4,9 +4,6 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 
-import com.google.gson.Gson;
-
-import blockchain.server.model.Block;
 import blockchain.server.model.SupplyChainMessage;
 
 public class GroupServers extends ReceiverAdapter {
@@ -45,4 +42,6 @@ public class GroupServers extends ReceiverAdapter {
 			System.out.println("ERROR: failed to send message");
 		}
 	}
+
+	public
 }

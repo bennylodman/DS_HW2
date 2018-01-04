@@ -16,19 +16,14 @@ import blockchain.server.model.TransactionResult;
 
 public class BlockHandler {
 	private SupplyChainMessage scMessage;
-	private List<WaitingObject> waitingThreadObjects; 
-	private boolean open;
+	private List<WaitingObject> waitingThreadObjects;
 	
-	public BlockHandler(boolean open) {
+	public BlockHandler() {
 		this.scMessage = new SupplyChainMessage(MessageType.PUBLISHE_BLOCK);
-		this.open = open;
 		this.waitingThreadObjects = new ArrayList<>();
 	}
 	
 	public TransactionResult addTransaction(Transaction trans) {
-		if (!open) 
-			return null;
-		
 		scMessage.addTransaction(trans);
 		WaitingObject waitingObj = new WaitingObject();
 		waitingThreadObjects.add(waitingObj);
@@ -50,15 +45,14 @@ public class BlockHandler {
 		waitingObj.done();
 		waitingObj.getLock().notify();
 	}
-	
-	public boolean isOpen() {
-		return open;
+
+	public void notifySuccessToAll(){
+		for (int i=0; i<waitingThreadObjects.size(); i++)
+		{
+			this.notifyTransaction(i, true, "O.K");
+		}
 	}
-	
-	public void close() {
-		this.open = false;
-	}
-	
+
 	public int size() {
 		return this.scMessage.getTransactions().size();
 	}
@@ -178,4 +172,5 @@ class WaitingObject {
 	public synchronized boolean isDone() {
 		return this.done;
 	}
+
 }
