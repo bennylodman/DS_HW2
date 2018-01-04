@@ -24,7 +24,7 @@ public class BlockHandler {
 	}
 	
 	public TransactionResult addTransaction(Transaction trans) {
-		scMessage.addTransaction(trans);
+		scMessage.getBlock().addTransaction(trans);
 		WaitingObject waitingObj = new WaitingObject();
 		waitingThreadObjects.add(waitingObj);
 		
@@ -38,7 +38,7 @@ public class BlockHandler {
 	}
 	
 	public void notifyTransaction(int transIndex, boolean resStatus, String resMessage) {
-		scMessage.removeTransactione(transIndex);
+		scMessage.getBlock().removeTransactione(transIndex);
 		WaitingObject waitingObj = waitingThreadObjects.get(transIndex);
 		waitingThreadObjects.remove(transIndex);
 		waitingObj.setResult(resStatus, resMessage);
@@ -46,21 +46,20 @@ public class BlockHandler {
 		waitingObj.getLock().notify();
 	}
 
-	public void notifySuccessToAll(){
-		for (int i=0; i<waitingThreadObjects.size(); i++)
-		{
+	public void notifySuccessToAll() {
+		for (int i=0; i < waitingThreadObjects.size(); i++) {
 			this.notifyTransaction(i, true, "O.K");
 		}
 	}
 
 	public int size() {
-		return this.scMessage.getTransactions().size();
+		return this.scMessage.getBlock().size();
 	}
 	
 	
 	//This operation not lock the view database because this view is a local copy of the current view, which accessed only by on thread.
 	public void verifyBlock(SupplyChainView view) {
-		List<Transaction> transList = this.scMessage.getTransactions();
+		List<Transaction> transList = this.scMessage.getBlock().getTransactions();
 		int transListSize = transList.size();
 		int discountSize = 0;
 		

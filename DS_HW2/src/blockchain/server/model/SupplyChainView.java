@@ -13,7 +13,7 @@ public class SupplyChainView {
 	private Map<String, List<SupplyChainObject>> systemObjects;
 	private String knownBlocksPath;
 	private int knownBlocksDepth;
-	private List<SupplyChainMessage> blockChain;
+	private List<Block> blockChain;
 	private ReadersWritersLock rwl;
 	
 	public SupplyChainView() {
@@ -48,7 +48,7 @@ public class SupplyChainView {
 		}
 	}
 
-	public void addToBlockChain(SupplyChainMessage block) {
+	public void addToBlockChain(Block block) {
 		synchronized (blockChain) {
 			if (block.getDepth() != this.knownBlocksDepth + 1)
 				return;
@@ -59,9 +59,13 @@ public class SupplyChainView {
 		}
 	}
 	
-	public SupplyChainMessage getFromBlockChain(int index) {
+	
+	public Block getFromBlockChain(int depth) {
 		synchronized (blockChain) {
-			return blockChain.get(index);
+			if (blockChain.size() < depth) 
+				return null;
+			
+			return blockChain.get(depth - 1);
 		}
 	}
 	
