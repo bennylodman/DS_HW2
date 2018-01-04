@@ -33,12 +33,12 @@ public class ZooKeeperHandler implements Watcher {
 	 * add new block to chain
 	 * - verify that the path is to the end of the chain and that it is the smallest son added
 	 *
-	 *
 	 * @param path - path to the last znode in the block chain.
 	 * @param data - json string of Block Header (Server Id, Block id).
 	 * @param depth - current block chain length
 	 *
 	 * @return the actual path of the created node
+	 * if null -> not the smallest node, need to update it's
 	 */
     public String addBlockToBlockChain(String path, String data, int depth)throws KeeperException, InterruptedException
 	{
@@ -74,8 +74,8 @@ public class ZooKeeperHandler implements Watcher {
 	 */
 	public void addServer(String serversName)throws KeeperException, InterruptedException
 	{
-			String path = "/Servers";
-			String serversPath = path.concat("/" + serversName);
+			String path = "/Servers/";
+			String serversPath = path.concat(serversName);
 			if (ZookeeperUtils.getAllChildrens(zk, path).contains(serversPath))
 			{
 				/*Server with same name already in the system - not allowed*/
@@ -86,19 +86,17 @@ public class ZooKeeperHandler implements Watcher {
 	}
 
 	/**
-	 * the function receive apth to znode in the block chain and return the delta from
+	 * the function receive a path to znode in the block chain and return the delta from
 	 * this path to the end of the block chain
 	 *
 	 * @param path - server name
 	 */
-	public String getCahinSuffix(String path, int depth)throws KeeperException, InterruptedException
+	public String getCahinSuffix(String path)throws KeeperException, InterruptedException
 	{
 		String currentPath = path;
-		int count=0;
 		while(ZookeeperUtils.hasNextBlock(zk, currentPath))
 		{
 			currentPath = getSmallestZnodeName(ZookeeperUtils.getAllChildrens(zk,currentPath));
-			count ++;
 		}
 
 		currentPath.replaceFirst(path, "");
@@ -112,14 +110,51 @@ public class ZooKeeperHandler implements Watcher {
 	 *
 	 * @param path - server name
 	 */
-	public List<String> getAllTheNextBlocks(String path, int depth)throws KeeperException, InterruptedException
+	public List<String> getAllTheNextBlocks(String path)throws KeeperException, InterruptedException
 	{
 		List<String> blockList = new ArrayList<>();
+		String currentPath = new String(path);
 
-		////Continue here
-
+		String suffixPath = getCahinSuffix(path);
+		if(suffixPath.equals(""))
+		{
+			return blockList;
+		}
+		String[] parts = suffixPath.split("/");
+		for(int i=1; i<parts.length; i++)
+		{
+			currentPath.concat("/");
+			currentPath.concat(parts[i]);
+			blockList.add(ZookeeperUtils.getNodeData(zk, currentPath));
+		}
 		return blockList;
 	}
+
+	/**
+	 * the function receive a servers name and check if this server exist
+	 *
+	 * @param serverName - server name
+	 * @return true if exist, false if not
+	 */
+	public boolean checkIfServerExist(String serverName)throws KeeperException, InterruptedException
+	{
+		if(zk.exists("/Servers/" + serverName, null) == null)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * the function return servers amount
+	 *
+	 * @return servers count
+	 */
+	public Integer getServerAmount()throws KeeperException, InterruptedException
+	{
+		return ZookeeperUtils.getAllChildrens(zk,"/Servers").size();
+	}
+
 
 	private String getSmallestZnodeName(List<String> list)
 	{
@@ -133,8 +168,9 @@ public class ZooKeeperHandler implements Watcher {
 			}
 		}
 		return small;
-
 	}
+
+
 
 
 }

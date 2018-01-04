@@ -122,20 +122,18 @@ public class ZookeeperUtils {
 		zk.getData(path, false, stat);
 		return stat.getAversion();
 	}
-	
-	
+
 
 	/**
 	 * @param path - path to the znode which we want to read it's data
-	 * @param cls -  class of the object type of the znode data. (Block\Ship\Container\Item).class
 	 * 
-	 * @return the data as object from the given class
+	 * @return the data as string from the given znode
 	 */
-	public static Object getNodeData(ZooKeeper zk, String path, Class<?> cls) throws KeeperException, InterruptedException { 
+	public static String getNodeData(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
 		Stat stat = new Stat();
 		byte[] dataAsBytes = zk.getData(path, false, stat);
 		String dataAsString = new String(dataAsBytes, StandardCharsets.UTF_8);
-		return gson.fromJson(dataAsString, cls);
+		return dataAsString;
 	} 
 
 }

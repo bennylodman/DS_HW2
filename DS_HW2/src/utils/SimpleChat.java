@@ -21,7 +21,7 @@ public class SimpleChat extends ReceiverAdapter {
 
 	public void receive(Message msg) {
 		String line=msg.getSrc() + ": " + msg.getObject();
-		System.out.println(line);
+		System.out.println(line + "; threadId: " + Thread.currentThread().getId());
 		synchronized(state) {
 			state.add(line);
 		}
@@ -48,7 +48,8 @@ public class SimpleChat extends ReceiverAdapter {
 
 
 	private void start() throws Exception {
-		channel=new JChannel("config/tcp.xml");
+		channel=new JChannel("C:/workspace/DS_HW2/DS_HW2/config/tcp.xml");
+		System.out.println("threadIdm: " + Thread.currentThread().getId());
 		channel.setReceiver(this);
 		channel.connect("ChatCluster");
 		channel.getState(null, 10000);
