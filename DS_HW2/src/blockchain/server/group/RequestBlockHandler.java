@@ -21,7 +21,7 @@ public class RequestBlockHandler extends Thread {
 	}
 	
     public void run() {
-    	Block block = view.getFromBlockChain(message.getBlock().getDepth());
+    	Block block = view.getFromBlockChain(Integer.valueOf(message.getArgs()));
 		SupplyChainMessage resopnse = new SupplyChainMessage(MessageType.ACK);
 		resopnse.setTargetName(message.getSendersName());
 		resopnse.setSendersName(serverName);

@@ -1,8 +1,5 @@
 package blockchain.server.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import blockchain.server.group.MessageType;
 
 public class SupplyChainMessage {
@@ -10,6 +7,7 @@ public class SupplyChainMessage {
 	private String targetName;
 	private MessageType type;
 	private Block block;
+	private String args;
 	
 	public SupplyChainMessage(MessageType type) {
 		this(null, type);
@@ -50,5 +48,13 @@ public class SupplyChainMessage {
 
 	public void setTargetName(String targetName) {
 		this.targetName = targetName;
+	}
+
+	public String getArgs() {
+		return args;
+	}
+
+	public void setArgs(String args) {
+		this.args = args;
 	}
 }
