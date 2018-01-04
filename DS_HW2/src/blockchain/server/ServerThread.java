@@ -6,6 +6,7 @@ import blockchain.server.model.SupplyChainView;
 import com.google.gson.Gson;
 import org.apache.zookeeper.KeeperException;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -13,30 +14,49 @@ import java.util.concurrent.TimeUnit;
  */
 public class ServerThread extends Thread {
 
-    public void run(){
+    public run(){
         Gson gson = new Gson();
-        String path = new String();
+        BlockHandler blockToAddTheChain;
+
         while(true)
         {
-            /*Sleep for 1 second*/
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            BlockHandler blockToAddTheChain;
-            /*Switch the 2 blocks (close block and open the second)*/
-            synchronized (DsTechShipping.blockHandlerLock) {
 
+            /*Close block and open new*/
+            synchronized (DsTechShipping.blockHandlerLock)
+            {
                 blockToAddTheChain = DsTechShipping.blocksHandler;
                 DsTechShipping.blocksHandler = new BlockHandler();
-
             }
+
             /*If block is empty no job to do*/
             if(blockToAddTheChain.size() == 0)
             {
                 continue;
             }
+
+
+            /*Sleep for 1 second*/
+            try {
+                TimeUnit.SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                assert(false);
+            }
+
+
+
+        }
+    }
+
+    public private all(){
+
+        String path = new String();
+        while(true)
+        {
+            BlockHandler blockToAddTheChain;
+            List<String> missingBlockList;
+
+
             /*Lock Global view for read - does not change during build of current view*/
             DsTechShipping.view.getRWLock().acquireRead();
 
@@ -64,6 +84,7 @@ public class ServerThread extends Thread {
                 e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                assert(false);
             }
 
             if(path != null)
@@ -82,8 +103,24 @@ public class ServerThread extends Thread {
                 /*BlockHeader was not added to chain*/
 
                 /*Need find out what are the missing blocks*/
+                try {
+                    missingBlockList = DsTechShipping.zkHandler.getAllTheNextBlocks(currentView.getKnownBlocksPath());
+                } catch (KeeperException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    assert(false);
+                }
 
-                /*Need to request and */
+                /*Request all blocks*/
+                /*TODO: create this function - will recieve missingBlockList and
+                * loop over every block and ask for it in the network:
+                *   if go it will update the view
+                *   else (no one has it) will delete it and finish (no reson to check the rest)
+                *   - when finished has updated view (for the moment)
+                * */
+
+                /*Try again with new depth*/
 
 
             }

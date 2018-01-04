@@ -8,6 +8,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.w3c.dom.ls.LSInput;
 
 
 // this class will handle all work with the zookeeper server
@@ -153,6 +154,22 @@ public class ZooKeeperHandler implements Watcher {
 	public Integer getServerAmount()throws KeeperException, InterruptedException
 	{
 		return ZookeeperUtils.getAllChildrens(zk,"/Servers").size();
+	}
+
+	/**
+	 * the function return servers names
+	 *
+	 * @return servers count
+	 */
+	public List<String> getServerNames()throws KeeperException, InterruptedException
+	{
+		List<String> list =  ZookeeperUtils.getAllChildrens(zk,"/Servers");
+		List<String> namesList = new ArrayList<>();
+		for(String str : list)
+		{
+			namesList.add(str.replaceFirst("/Servers/", ""));
+		}
+		return namesList;
 	}
 
 
