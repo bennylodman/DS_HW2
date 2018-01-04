@@ -10,6 +10,10 @@ import blockchain.server.model.SupplyChainObject;
 import utils.ReadersWritersLock;
 
 public class SupplyChainView {
+	public Map<String, List<SupplyChainObject>> getSystemObjects() {
+		return systemObjects;
+	}
+
 	private Map<String, List<SupplyChainObject>> systemObjects;
 	private String knownBlocksPath;
 	private int knownBlocksDepth;

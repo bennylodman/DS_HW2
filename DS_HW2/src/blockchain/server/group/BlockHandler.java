@@ -121,6 +121,10 @@ public class BlockHandler {
 			}
 		}
 	}
+
+	public SupplyChainMessage getScMessage() {
+		return scMessage;
+	}
 }
 
 
