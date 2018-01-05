@@ -85,6 +85,8 @@ public class GroupServers extends ReceiverAdapter {
 			
 			case RESPONSE_BLOCK: {
 				
+				/*TODO: make sure that the messages is of the next missing block and not old ones
+				* can check it by latest block in view or need to save the value in RequestBlockHandler*/
 				break;
 			}
 		}

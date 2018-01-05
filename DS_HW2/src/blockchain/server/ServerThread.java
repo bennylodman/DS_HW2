@@ -1,6 +1,8 @@
 package blockchain.server;
 
 import blockchain.server.group.BlockHandler;
+import blockchain.server.group.MessageType;
+import blockchain.server.group.UpdateViewHandler;
 import blockchain.server.model.Block;
 import blockchain.server.model.BlockHeader;
 import blockchain.server.model.SupplyChainMessage;
@@ -28,10 +30,30 @@ public class ServerThread extends Thread {
         }
     }
 
+    private boolean isNeededBlockInList_InsertToView(List<SupplyChainMessage> responseList)
+    {
+        for(SupplyChainMessage msg : responseList)
+        {
+            if(msg.getType() == MessageType.RESPONSE_BLOCK)
+            {
+
+                /*Found the needed block -> add it to view*/
+                /*TODO - need to lock the view for write - dont find were it happens*/
+                new UpdateViewHandler(DsTechShipping.view, msg).start();
+                return true;
+            }
+        }
+        return false;
+    }
+
     /*The function receive sorted list of missing blocks */
     private boolean handleMissingBlock(List<String> missingBlockList) throws KeeperException, InterruptedException {
         BlockHeader block = null;
-        List<String> serversList = null;
+        List<SupplyChainMessage> responseList = null;
+        List<String> serversNames = null;
+        List<String> serversNamesBeforeRequest = null;
+        Boolean waitForBlock = true;
+
         for(String blockString : missingBlockList)
         {
             block = gson.fromJson(blockString, BlockHeader.class);
@@ -43,23 +65,59 @@ public class ServerThread extends Thread {
             }
 
             /*Check if already have this block*/
-            if (DsTechShipping.view.getSystemObjects().containsKey(block));
+            if (DsTechShipping.view.getSystemObjects().containsKey(block))
             {
                 continue;
             }
 
             /*Get servers list*/
+            serversNamesBeforeRequest = DsTechShipping.zkHandler.getServerNames();
 
-            /*TODO */
             /*Send request message with current block to all servers*/
-            /*TODO*/
-            /*While(got the block || all servers returned dont have it || already have block in view*/
-            /*TODO*/
+            DsTechShipping.groupServers.requestBlock(block.getDepth());
 
-            /*If no block -> remove the block from block chain - and return from function*/
-            /*TODO*/
-            /*If has block continue*/
-            /*TODO*/
+            /*While(got the block || all servers returned dont have it || already have block in view*/
+            while(waitForBlock)
+            {
+                /*Get response messages*/
+                responseList = DsTechShipping.groupServers.waitForResponse();
+
+
+                if (isNeededBlockInList_InsertToView(responseList) || (DsTechShipping.view.getFromBlockChain(block.getDepth()) != null))
+                {
+                    /*The server got this block*/
+                    waitForBlock = false;
+                }
+                else
+                {
+                    /*Get current alive servers*/
+                    serversNames = DsTechShipping.zkHandler.getServerNames();
+
+                    /*Remove from current alive servers all the servers that joined after the request*/
+                    for(String name: serversNames)
+                    {
+                        if(!serversNamesBeforeRequest.contains(name))
+                        {
+                            serversNames.remove(name);
+                        }
+                    }
+
+                    for(SupplyChainMessage msg : responseList)
+                    {
+                        if(serversNames.contains(msg.getSendersName()))
+                        {
+                            serversNames.remove(msg.getSendersName());
+                        }
+                    }
+                    if(serversNames.isEmpty())
+                    {
+                        /*All optional servers returned negative ack
+                        * Block does not exist eny more -> remove it from block chain*/
+                        DsTechShipping.zkHandler.
+                    }
+
+                }
+            }
         }
         return true;
     }

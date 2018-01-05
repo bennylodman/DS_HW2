@@ -66,6 +66,21 @@ public class ZooKeeperHandler implements Watcher {
 	}
 
 	/**
+	 * add new block to chain
+	 * - verify that the path is to the end of the chain and that it is the smallest son added
+	 *
+	 * @param path - path to the father of the znode in the block chain.
+	 * @param data - json string of BlockHeader Header (Server Id, BlockHeader id) to compare that this is the right one.
+	 * @param depth - current block chain length
+	 *
+	 */
+	public void removeBlockToBlockChain(String path, String data, int depth)throws KeeperException, InterruptedException
+	{
+		zk.getChildren(path,null);
+
+	}
+
+	/**
 	 * add new server zNode
 	 * - create EPHEMERAL znode with servers name in "Server" subTree
 	 * - this way other servers can now is some server still exists.
