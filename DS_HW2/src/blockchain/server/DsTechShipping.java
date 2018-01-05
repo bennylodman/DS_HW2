@@ -1,8 +1,15 @@
 package blockchain.server;
 
+
+import java.util.List;
+
 import blockchain.server.group.BlockHandler;
 import blockchain.server.group.GroupServers;
 import blockchain.server.group.Operation;
+import blockchain.server.model.Container;
+import blockchain.server.model.Item;
+import blockchain.server.model.QueryResult;
+import blockchain.server.model.Ship;
 import blockchain.server.model.SupplyChainObject;
 import blockchain.server.model.SupplyChainView;
 import blockchain.server.model.Transaction;
@@ -16,15 +23,15 @@ public class DsTechShipping {
 	public static ZooKeeperHandler zkHandler;
 	public static GroupServers groupServers;
 	public static SupplyChainView view;
-	public static BlockHandler blocksHandler; // always contains 2 blocks and exactly one block is open at any time.
-	public static Object blockHandlerLock;
+	public static BlockHandler blocksHandler = new BlockHandler(); // always contains 2 blocks and exactly one block is open at any time.
+	public static Object blockHandlerLock = new Object();
 
-	public DsTechShipping() {
-		//TODO: initialize zookeeper and jGroup
-		
-		this.blocksHandler = new BlockHandler();
-		this.blockHandlerLock = new Object();
-	}
+//	public DsTechShipping() {
+//		//TODO: initialize zookeeper and jGroup
+//		
+//		this.blocksHandler = new BlockHandler();
+//		this.blockHandlerLock = new Object();
+//	}
 	
 	public static ZooKeeperHandler getZooKeeperHandler() {
 		return zkHandler;
@@ -72,11 +79,11 @@ public class DsTechShipping {
 		return addTransaction(new Transaction(id, Operation.CREATE, docId, new String[]{SupplyChainObject.SHIP}));
 	}
 	
-	public static TransactionResult createContainer(String id, String shipId, String docId) throws InterruptedException {
+	public static TransactionResult createContainer(String id, String shipId) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.CREATE, shipId, new String[]{SupplyChainObject.CONTAINER}));
 	}
 	
-	public static TransactionResult createItem(String id, String containerId, String shipId, String docId) throws InterruptedException {
+	public static TransactionResult createItem(String id, String containerId) throws InterruptedException {
 		return addTransaction(new Transaction(id, Operation.CREATE, containerId, new String[]{SupplyChainObject.ITEM}));
 	}
 	
@@ -88,10 +95,95 @@ public class DsTechShipping {
 		return addTransaction(new Transaction(id, Operation.MOVE, src, trg));
 	}
 	
-	void getShipState() {}
-	void getContainerState() {}
-	void getItemState() {}
-	void getDocState() {}
+	public static QueryResult getShipState(String id) {
+		view.getRWLock().acquireRead();
+		
+		if (id == null || !id.startsWith(Ship.PREFIX))
+			return new QueryResult(false, "ERROR: " + id + " is invalid ship ID");
+		
+		if (!view.hasObject(id))
+			return new QueryResult(false, "ERROR: The system does not contain an object with ID: " + id);
+		
+		SupplyChainObject ship = view.getObjectState(id);
+		
+		view.getRWLock().releaseRead();
+		return new QueryResult(true, "OK", ship);
+	}
 	
-	void getHistory() {}
+	public static QueryResult getShipHistory(String id) {
+		view.getRWLock().acquireRead();
+		
+		if (id == null || !id.startsWith(Ship.PREFIX))
+			return new QueryResult(false, "ERROR: " + id + " is invalid ship ID");
+		
+		if (!view.hasObject(id))
+			return new QueryResult(false, "ERROR: The system does not contain an object with ID: " + id);
+		
+		List<SupplyChainObject> shipHist = view.getObjectHistory(id);
+		
+		view.getRWLock().releaseRead();
+		return new QueryResult(true, "OK", shipHist);
+	}
+	
+	static QueryResult getContainerState(String id) {
+		view.getRWLock().acquireRead();
+		
+		if (id == null || !id.startsWith(Container.PREFIX))
+			return new QueryResult(false, "ERROR: " + id + " is invalid container ID");
+		
+		if (!view.hasObject(id))
+			return new QueryResult(false, "ERROR: The system does not contain an object with ID: " + id);
+		
+		SupplyChainObject container = view.getObjectState(id);
+		
+		view.getRWLock().releaseRead();
+		return new QueryResult(true, "OK", container);
+	}
+	
+	public static QueryResult getContainerHist(String id) {
+		view.getRWLock().acquireRead();
+		
+		if (id == null || !id.startsWith(Container.PREFIX))
+			return new QueryResult(false, "ERROR: " + id + " is invalid container ID");
+		
+		if (!view.hasObject(id))
+			return new QueryResult(false, "ERROR: The system does not contain an object with ID: " + id);
+		
+		List<SupplyChainObject> containerHist = view.getObjectHistory(id);
+		
+		view.getRWLock().releaseRead();
+		return new QueryResult(true, "OK", containerHist);
+	}
+	
+	public static QueryResult getItemState(String id) {
+		view.getRWLock().acquireRead();
+		
+		if (id == null || !id.startsWith(Item.PREFIX))
+			return new QueryResult(false, "ERROR: " + id + " is invalid item ID");
+		
+		if (!view.hasObject(id))
+			return new QueryResult(false, "ERROR: The system does not contain an object with ID: " + id);
+		
+		SupplyChainObject item = view.getObjectState(id);
+		
+		view.getRWLock().releaseRead();
+		return new QueryResult(true, "OK", item);
+	}
+	
+	public static QueryResult getItemHist(String id) {
+		view.getRWLock().acquireRead();
+		
+		if (id == null || !id.startsWith(Item.PREFIX))
+			return new QueryResult(false, "ERROR: " + id + " is invalid item ID");
+		
+		if (!view.hasObject(id))
+			return new QueryResult(false, "ERROR: The system does not contain an object with ID: " + id);
+		
+		List<SupplyChainObject> itemHist = view.getObjectHistory(id);
+		
+		view.getRWLock().releaseRead();
+		return new QueryResult(true, "OK", itemHist);
+	}
+	
+//	public static QueryResult getDocState(String id) {} //TODO
 }
