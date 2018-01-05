@@ -66,38 +66,28 @@ public class GroupServers extends ReceiverAdapter {
 
 	public void receive(Message msg) {
 		SupplyChainMessage scMessage = msg.getObject();
-		//TODO: check if this message is for me
 		
 		switch (scMessage.getType()) {
 			case PUBLISHE_BLOCK: {
-				new UpdateViewHandler(view, scMessage).start();
+				new UpdateViewHandler(view, scMessage, channel, serverName).start();
 				break;
 			}
 			
 			case REQUEST_BLOCK: {
-				new RequestBlockHandler(view, scMessage, channel, serverName).start();
+				if (scMessage.getTargetName() == serverName)
+					new RequestBlockHandler(view, scMessage, channel, serverName).start();
 				break;
 			}
 			
 			case ACK: {
+				rStack.addIfRelevant(scMessage);
 				break;
 			}
 			
 			case RESPONSE_BLOCK: {
-				
-				/*TODO: make sure that the messages is of the next missing block and not old ones
-				* can check it by latest block in view or need to save the value in RequestBlockHandler*/
+				rStack.addIfRelevant(scMessage);
 				break;
 			}
 		}
 	}
-	
-//	public void send(SupplyChainMessage scMessage) {
-//		try {
-//			this.channel.send(new Message(null, scMessage));
-//		} catch (Exception e) {
-//			System.out.println("ERROR: failed to send message");
-//		}
-//	}
-
 }

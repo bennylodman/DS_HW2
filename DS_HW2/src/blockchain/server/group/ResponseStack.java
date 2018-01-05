@@ -20,9 +20,9 @@ public class ResponseStack {
 		this.relevantMessageDepth = relevantBlockDepth;
 	}
 	
-	public synchronized void addResponse(SupplyChainMessage msg) {
-		stack.add(msg);
-	}
+//	public synchronized void addResponse(SupplyChainMessage msg) {
+//		stack.add(msg);
+//	}
 	
 	public synchronized List<SupplyChainMessage> fetchStack() {
 		List<SupplyChainMessage> currentStack = stack;
@@ -30,19 +30,13 @@ public class ResponseStack {
 		return currentStack;
 	}
 	
-	public synchronized boolean isRelevant(SupplyChainMessage msg) {
+	public synchronized void addIfRelevant(SupplyChainMessage msg) {
 		if (type != msg.getType())
-			return false;
+			return;
 		
-		if (type == MessageType.ACK) {
-			return Integer.parseInt(msg.getArgs()) == relevantMessageDepth;
+		if (Integer.parseInt(msg.getArgs()) == relevantMessageDepth) {
+			stack.add(msg);
 		}
-		
-		if (type == MessageType.RESPONSE_BLOCK) {
-			return msg.getBlock().getDepth() == relevantMessageDepth;
-		}
-		
-		return false;
 	}
 	
 }	

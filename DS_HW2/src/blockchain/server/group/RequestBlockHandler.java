@@ -22,9 +22,10 @@ public class RequestBlockHandler extends Thread {
 	
     public void run() {
     	Block block = view.getFromBlockChain(Integer.valueOf(message.getArgs()));
-		SupplyChainMessage resopnse = new SupplyChainMessage(MessageType.ACK);
+		SupplyChainMessage resopnse = new SupplyChainMessage(MessageType.RESPONSE_BLOCK);
 		resopnse.setTargetName(message.getSendersName());
 		resopnse.setSendersName(serverName);
+		resopnse.setArgs(message.getArgs());
 		
     	if (block == null) {
     		resopnse.setBlock(null);
