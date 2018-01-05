@@ -74,10 +74,22 @@ public class ZooKeeperHandler implements Watcher {
 	 * @param depth - current block chain length
 	 *
 	 */
-	public void removeBlockToBlockChain(String path, String data, int depth)throws KeeperException, InterruptedException
+	public void removeBlockFromBlockChain(String path, String data, int depth)throws KeeperException, InterruptedException
 	{
-		zk.getChildren(path,null);
-
+		List<String> sonList = ZookeeperUtils.getAllChildrens(zk, path);
+		String blocksData = null;
+		for (String son : sonList)
+		{
+			blocksData = ZookeeperUtils.getNodeData(zk, son);
+			/*It is necessary in order to make sure that some one else didn't removed it and added new one
+			* must check block id + server that created him is matching*/
+			if (data.equals(blocksData))
+			{
+				ZookeeperUtils.removeZNode(zk, son);
+				return;
+			}
+		}
+		return;
 	}
 
 	/**

@@ -34,12 +34,10 @@ public class ServerThread extends Thread {
     {
         for(SupplyChainMessage msg : responseList)
         {
-            if(msg.getType() == MessageType.RESPONSE_BLOCK)
+            if(msg.getType() == MessageType.RESPONSE_BLOCK && msg.getBlock() !=null)
             {
-
                 /*Found the needed block -> add it to view*/
-                /*TODO - need to lock the view for write - dont find were it happens*/
-                new UpdateViewHandler(DsTechShipping.view, msg).start();
+                new UpdateViewHandler(DsTechShipping.view, msg, DsTechShipping.groupServers.getChannel(), DsTechShipping.groupServers.getServerName()).start();
                 return true;
             }
         }
@@ -47,7 +45,7 @@ public class ServerThread extends Thread {
     }
 
     /*The function receive sorted list of missing blocks */
-    private boolean handleMissingBlock(List<String> missingBlockList) throws KeeperException, InterruptedException {
+    private void handleMissingBlock(List<String> missingBlockList) throws KeeperException, InterruptedException {
         BlockHeader block = null;
         List<SupplyChainMessage> responseList = null;
         List<String> serversNames = null;
@@ -113,26 +111,52 @@ public class ServerThread extends Thread {
                     {
                         /*All optional servers returned negative ack
                         * Block does not exist eny more -> remove it from block chain*/
-                        DsTechShipping.zkHandler.
+                        DsTechShipping.zkHandler.removeBlockFromBlockChain(DsTechShipping.getBlockChainView().getKnownBlocksPath(), blockString, block.getDepth()-1);
+                        return;
                     }
 
                 }
             }
         }
-        return true;
+        return;
     }
 
     /*Send to all servers the new block and wait to MaxServersCrushSupport + update yourself*/
-    private void updateServersWithNewBlock( BlockHandler blockToAddTheChain) {
+    private void updateServersWithNewBlock( BlockHandler blockToAddTheChain) throws KeeperException, InterruptedException {
         SupplyChainMessage msg = blockToAddTheChain.getScMessage();
+        Integer serversGotTheBlock = 0;
+        List<String> serversName;
+        List<SupplyChainMessage> responseList;
 
         /*Send publish message to all*/
-        /*TODO*/
+        DsTechShipping.groupServers.publishBlock(msg);
 
         /*while we have not got the amount of ack needed  to continue */
-          /*TODO*/
-          /*decrees amount that left to wait - manage doubles...*/
-          /*Request the new acks*/
+        while(serversGotTheBlock < DsTechShipping.MaxServersCrushSupport)
+        {
+            serversName = DsTechShipping.getZooKeeperHandler().getServerNames();
+            serversGotTheBlock = 0;
+            responseList = DsTechShipping.groupServers.waitForResponse();
+
+            if(serversName.size() < DsTechShipping.MaxServersCrushSupport)
+            {
+                assert (false);
+                /*To many servers have failed and cant continue operate*/
+            }
+
+            for(SupplyChainMessage ackMsg : responseList)
+            {
+                if(serversName.contains(ackMsg.getSendersName()))
+                {
+                    serversGotTheBlock++;
+                    /*todo: will current server will send ack message when he receive the message from himself??*/
+                    serversName.remove(ackMsg.getSendersName());
+                }
+            }
+        }
+
+        /*There is minimal amount of servers that know the new block*/
+
 
     }
     public void run(){
@@ -204,7 +228,18 @@ public class ServerThread extends Thread {
                 blockToAddTheChain.getScMessage().getBlock().setBlockName(Integer.toString(currentView.getKnownBlocksDepth()));
 
                 /*Send to all servers the new block and wait to MaxServersCrushSupport + update yourself*/
-                updateServersWithNewBlock(blockToAddTheChain);
+                try {
+                    updateServersWithNewBlock(blockToAddTheChain);
+                } catch (KeeperException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                /*Update view to have the new block*/
+                /*Will happen on its own but cant wake up the REST threads
+                * until the data was updated*/
+                new UpdateViewHandler(DsTechShipping.view, blockToAddTheChain.getScMessage(), DsTechShipping.groupServers.getChannel(), DsTechShipping.groupServers.getServerName()).start();
 
                 /*Wakeup all REST threads and return that trnsactions happens*/
                 blockToAddTheChain.notifySuccessToAll();
@@ -227,7 +262,15 @@ public class ServerThread extends Thread {
                 assert (missingBlockList.size() != 0);
 
                 /*Request and handle all missing blocks*/
-                handleMissingBlock(missingBlockList);
+                try {
+                    handleMissingBlock(missingBlockList);
+                    assert(false);
+                } catch (KeeperException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    assert(false);
+                    e.printStackTrace();
+                }
 
                 /*Try again with new depth - next loop will do it*/
             }
