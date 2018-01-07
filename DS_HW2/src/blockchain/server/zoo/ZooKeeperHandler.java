@@ -13,7 +13,7 @@ import org.w3c.dom.ls.LSInput;
 
 // this class will handle all work with the zookeeper server
 public class ZooKeeperHandler implements Watcher {
-	public static String ZK_ADDR = "??";
+	public static String ZK_ADDR = "192.168.1.29:2181,192.168.1.13:2181";
 	public static int ZK_PORT = 2181;
 
 	private static ZooKeeper zk;
