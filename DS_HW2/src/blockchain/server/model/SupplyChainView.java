@@ -41,36 +41,45 @@ public class SupplyChainView {
 	}
 	
 	public String getKnownBlocksPath() {
-		synchronized (blockChain) {
-			return knownBlocksPath;
-		}
+		String res;
+		rwl.acquireRead();
+		res = knownBlocksPath;
+		rwl.releaseRead();
+		return res;
 	}
  
 	public int getKnownBlocksDepth() {
-		synchronized (blockChain) {
-			return knownBlocksDepth;
-		}
+		int res;
+		rwl.acquireRead();
+		res = knownBlocksDepth;
+		rwl.releaseRead();
+		return res;
 	}
 
 	public void addToBlockChain(Block block) {
-		synchronized (blockChain) {
-			if (block.getDepth() != this.knownBlocksDepth + 1)
-				return;
-			
-			blockChain.add(block);
-			knownBlocksPath = knownBlocksPath + "/" + block.getBlockName();
-			this.knownBlocksDepth++;
+		rwl.acquireWrite();
+		if (block.getDepth() != this.knownBlocksDepth + 1) {
+			rwl.releaseWrite();
+			return;
 		}
+			
+		blockChain.add(block);
+		knownBlocksPath = knownBlocksPath + "/" + block.getBlockName();
+		this.knownBlocksDepth++;
+		rwl.releaseWrite();
 	}
 	
 	
 	public Block getFromBlockChain(int depth) {
-		synchronized (blockChain) {
-			if (blockChain.size() < depth) 
-				return null;
-			
-			return blockChain.get(depth - 1);
+		rwl.acquireRead();
+		if (blockChain.size() < depth) {
+			rwl.releaseRead();
+			return null;
 		}
+			
+		Block blok = blockChain.get(depth - 1);
+		rwl.releaseRead();
+		return blok;
 	}
 	
 	public void createObject(SupplyChainObject scObject) {

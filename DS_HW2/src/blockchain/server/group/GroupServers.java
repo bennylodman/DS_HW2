@@ -7,11 +7,14 @@ import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 
+import blockchain.server.DsTechShipping;
+import blockchain.server.model.Container;
 import blockchain.server.model.SupplyChainMessage;
 import blockchain.server.model.SupplyChainView;
 
 public class GroupServers extends ReceiverAdapter {
 	private static int RESPONSE_TIMEOUT = 1;
+	private static String BRODSCST = "ALL"; 
 	
 	private JChannel channel;
 	private String serverName = System.getProperty("user.name", "n/a");
@@ -41,6 +44,8 @@ public class GroupServers extends ReceiverAdapter {
 		rStack.reset(blockDepth);
 		SupplyChainMessage scMessage = new SupplyChainMessage(MessageType.REQUEST_BLOCK);
 		scMessage.setArgs(String.valueOf(blockDepth));
+		scMessage.setTargetName(BRODSCST);
+		scMessage.setSendersName(serverName);
 		try {
 			this.channel.send(new Message(null, scMessage));
 		} catch (Exception e) {
@@ -50,6 +55,8 @@ public class GroupServers extends ReceiverAdapter {
 	
 	public void publishBlock(SupplyChainMessage msg) {
 		rStack.reset(msg.getBlock().getDepth());
+		msg.setTargetName(BRODSCST);
+		msg.setSendersName(serverName);
 		try {
 			this.channel.send(new Message(null, msg));
 		} catch (Exception e) {
@@ -69,12 +76,13 @@ public class GroupServers extends ReceiverAdapter {
 		
 		switch (scMessage.getType()) {
 			case PUBLISHE_BLOCK: {
-				new UpdateViewHandler(view, scMessage, channel, serverName).start();
+				if (scMessage.getSendersName() != serverName)
+					new UpdateViewHandler(view, scMessage, channel, serverName, DsTechShipping.zkHandler).start();
 				break;
 			}
 			
 			case REQUEST_BLOCK: {
-				if (scMessage.getTargetName() == serverName)
+				if (scMessage.getTargetName() == serverName || scMessage.getTargetName() == BRODSCST)
 					new RequestBlockHandler(view, scMessage, channel, serverName).start();
 				break;
 			}

@@ -20,10 +20,6 @@ public class ResponseStack {
 		this.relevantMessageDepth = relevantBlockDepth;
 	}
 	
-//	public synchronized void addResponse(SupplyChainMessage msg) {
-//		stack.add(msg);
-//	}
-	
 	public synchronized List<SupplyChainMessage> fetchStack() {
 		List<SupplyChainMessage> currentStack = stack;
 		stack = new ArrayList<>();

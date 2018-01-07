@@ -37,7 +37,7 @@ public class ServerThread extends Thread {
             if(msg.getType() == MessageType.RESPONSE_BLOCK && msg.getBlock() !=null)
             {
                 /*Found the needed block -> add it to view*/
-                new UpdateViewHandler(DsTechShipping.view, msg, DsTechShipping.groupServers.getChannel(), DsTechShipping.groupServers.getServerName()).start();
+                new UpdateViewHandler(DsTechShipping.view, msg, DsTechShipping.groupServers.getChannel(), DsTechShipping.groupServers.getServerName(), DsTechShipping.zkHandler).run();
                 return true;
             }
         }
@@ -239,7 +239,7 @@ public class ServerThread extends Thread {
                 /*Update view to have the new block*/
                 /*Will happen on its own but cant wake up the REST threads
                 * until the data was updated*/
-                new UpdateViewHandler(DsTechShipping.view, blockToAddTheChain.getScMessage(), DsTechShipping.groupServers.getChannel(), DsTechShipping.groupServers.getServerName()).start();
+                new UpdateViewHandler(DsTechShipping.view, blockToAddTheChain.getScMessage(), DsTechShipping.groupServers.getChannel(), DsTechShipping.groupServers.getServerName(), DsTechShipping.zkHandler).run();
 
                 /*Wakeup all REST threads and return that trnsactions happens*/
                 blockToAddTheChain.notifySuccessToAll();

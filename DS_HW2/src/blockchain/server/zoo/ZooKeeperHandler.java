@@ -14,7 +14,7 @@ import org.w3c.dom.ls.LSInput;
 // this class will handle all work with the zookeeper server
 public class ZooKeeperHandler implements Watcher {
 	public static String ZK_ADDR = "??";
-	public static int ZK_PORT = 000;
+	public static int ZK_PORT = 2181;
 
 	private static ZooKeeper zk;
 	private static Object mutex;
@@ -166,11 +166,8 @@ public class ZooKeeperHandler implements Watcher {
 	 */
 	public boolean checkIfServerExist(String serverName)throws KeeperException, InterruptedException
 	{
-		if(zk.exists("/Servers/" + serverName, null) == null)
-		{
-			return true;
-		}
-		return false;
+		return (zk.exists("/Servers/" + serverName, null) != null);
+
 	}
 
 	/**

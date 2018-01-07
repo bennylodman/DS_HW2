@@ -1,22 +1,26 @@
 package blockchain.server.group;
 
+import org.apache.zookeeper.KeeperException;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 
 import blockchain.server.model.SupplyChainMessage;
 import blockchain.server.model.SupplyChainView;
+import blockchain.server.zoo.ZooKeeperHandler;
 
 public class UpdateViewHandler extends Thread {
 	private SupplyChainView view;
 	private SupplyChainMessage message;
 	private JChannel channel;
 	private String serverName;
+	private ZooKeeperHandler zkh;
 	
-	public UpdateViewHandler(SupplyChainView view, SupplyChainMessage message, JChannel channel, String serverName) {
+	public UpdateViewHandler(SupplyChainView view, SupplyChainMessage message, JChannel channel, String serverName, ZooKeeperHandler zkh) {
 		this.view = view;
 		this.message = message;
 		this.channel = channel;
 		this.serverName = serverName;
+		this.zkh = zkh;
 	}
 	
     public void run() {
@@ -45,12 +49,21 @@ public class UpdateViewHandler extends Thread {
                     view.wait();
                 } catch (InterruptedException e) {}
             }
-
-            message.getBlock().applyTransactions(view);
-            view.addToBlockChain(message.getBlock());
+            
+            view.getRWLock().acquireWrite();
+            boolean isExsit;
+            try {
+				isExsit = zkh.checkIfServerExist(message.getSendersName());
+			} catch (KeeperException | InterruptedException e) {
+				isExsit = false;
+			}
+            
+            if (isExsit) {
+            	message.getBlock().applyTransactions(view);
+                view.addToBlockChain(message.getBlock());
+            }
             view.notifyAll();
+            view.getRWLock().releaseWrite();
         }
-
-    	
     }
 }
