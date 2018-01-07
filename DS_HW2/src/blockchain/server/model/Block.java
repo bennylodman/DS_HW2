@@ -51,7 +51,7 @@ public class Block {
 	}
 	
 	public void applyTransactions(SupplyChainView view) {
-		view.getRWLock().acquireWrite();
+//		view.getRWLock().acquireWrite();
 		for (Transaction trans : transactions) {
 			switch (trans.getOperationType()) {
 				case MOVE: {
@@ -78,7 +78,7 @@ public class Block {
 				}
 			}
 		}
-		view.getRWLock().releaseWrite();
+//		view.getRWLock().releaseWrite();
 	}
 	
 }

@@ -8,19 +8,22 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
-import org.w3c.dom.ls.LSInput;
 
 
 // this class will handle all work with the zookeeper server
 public class ZooKeeperHandler implements Watcher {
-	public static String ZK_ADDR = "192.168.1.29:2181,192.168.1.13:2181";
+	public static String ZK_ADDR = "172.20.10.5:2181,172.20.10.3:2181";
 	public static int ZK_PORT = 2181;
 
 	private static ZooKeeper zk;
 	private static Object mutex;
 	
-	public ZooKeeperHandler() throws IOException {
-		zk = new ZooKeeper(ZK_ADDR, ZK_PORT, this);
+	public ZooKeeperHandler() {
+		try {
+			zk = new ZooKeeper(ZK_ADDR, ZK_PORT, this);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		mutex = new Object();
 	}
 	

@@ -21,11 +21,16 @@ public class GroupServers extends ReceiverAdapter {
 	private SupplyChainView view;
 	private ResponseStack rStack;
 	
-	public GroupServers(SupplyChainView view) throws Exception {
+	public GroupServers(SupplyChainView view) {
 		this.view = view;
-		channel = new JChannel("config/tcp.xml");
-		channel.setReceiver(this);
-		channel.connect("GroupServers");
+		try {
+			channel = new JChannel("config/tcp.xml");
+			channel.setReceiver(this);
+			channel.connect("GroupServers");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 	public JChannel getChannel() {

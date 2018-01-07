@@ -18,7 +18,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class ServerThread extends Thread {
 
-    Gson gson = new Gson();
+    static private Gson gson = new Gson();
+    
+    
     private void goToSleep()
     {
         /*Sleep for 1 second*/

@@ -21,7 +21,7 @@ public class SupplyChainView {
 	private ReadersWritersLock rwl;
 	
 	public SupplyChainView() {
-		this(0, "/");
+		this(0, "/Blockchain");
 	}
 	
 	public SupplyChainView(int knownBlocksDepth, String knownBlocksPath) {

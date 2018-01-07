@@ -20,18 +20,16 @@ import blockchain.server.zoo.ZooKeeperHandler;
 public class DsTechShipping {
 
 	public static Integer MaxServersCrushSupport = 1;
-	public static ZooKeeperHandler zkHandler;
+	public static ZooKeeperHandler zkHandler = new ZooKeeperHandler();
 	public static GroupServers groupServers;
-	public static SupplyChainView view;
+	public static SupplyChainView view = new SupplyChainView();
 	public static BlockHandler blocksHandler = new BlockHandler(); // always contains 2 blocks and exactly one block is open at any time.
 	public static Object blockHandlerLock = new Object();
 
-//	public DsTechShipping() {
-//		//TODO: initialize zookeeper and jGroup
-//		
-//		this.blocksHandler = new BlockHandler();
-//		this.blockHandlerLock = new Object();
-//	}
+	public void initialize() {
+		DsTechShipping.groupServers = new GroupServers(view);
+		new ServerThread().start();
+	}
 	
 	public static ZooKeeperHandler getZooKeeperHandler() {
 		return zkHandler;
