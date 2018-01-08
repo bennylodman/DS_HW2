@@ -126,7 +126,7 @@ public class ZooKeeperHandler implements Watcher {
 		String currentPath = path;
 		while(ZookeeperUtils.hasNextBlock(zk, currentPath))
 		{
-			currentPath = getSmallestZnodeName(ZookeeperUtils.getAllChildrens(zk,currentPath));
+			currentPath = currentPath + "/" + getSmallestZnodeName(ZookeeperUtils.getAllChildrens(zk,currentPath));
 		}
 		currentPath = currentPath.replace(path, "");
 		return currentPath;
