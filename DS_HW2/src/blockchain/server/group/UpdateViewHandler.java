@@ -45,7 +45,7 @@ public class UpdateViewHandler extends Thread {
             {
                 while (message.getBlock().getDepth() != view.getKnownBlocksDepth() + 1) {
                     try {
-                        wait();
+                    	waitingPoint.wait();
                     } catch (InterruptedException e) {}
                 }
                 
@@ -61,7 +61,7 @@ public class UpdateViewHandler extends Thread {
                 	message.getBlock().applyTransactions(view);
                     view.addToBlockChain(message.getBlock());
                 }
-                notifyAll();
+                waitingPoint.notifyAll();
                 view.getRWLock().releaseWrite();
             }
     	}

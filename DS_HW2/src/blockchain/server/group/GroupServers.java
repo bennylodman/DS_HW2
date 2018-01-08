@@ -19,6 +19,7 @@ import blockchain.server.model.SupplyChainView;
 public class GroupServers extends ReceiverAdapter {
 	private static int RESPONSE_TIMEOUT = 1;
 	private static String BRODSCST = "ALL"; 
+	private Gson gson = new Gson();
 	
 	private JChannel channel;
 	private String serverName = System.getProperty("user.name", "n/a");
@@ -58,7 +59,7 @@ public class GroupServers extends ReceiverAdapter {
 		scMessage.setTargetName(BRODSCST);
 		scMessage.setSendersName(serverName);
 		try {
-			this.channel.send(new Message(null, scMessage));
+			this.channel.send(new Message(null, gson.toJson(scMessage)));
 		} catch (Exception e) {
 			System.out.println("requestBlock: failed to send message");
 		}
@@ -69,8 +70,6 @@ public class GroupServers extends ReceiverAdapter {
 		msg.setTargetName(BRODSCST);
 		msg.setSendersName(serverName);
 		try {
-			System.out.println("publishBlock");
-			Gson gson = new Gson();
 			this.channel.send(new Message(null, gson.toJson(msg)));
 		} catch (Exception e) {
 			System.out.println("publishBlock: failed to send message");
@@ -85,7 +84,8 @@ public class GroupServers extends ReceiverAdapter {
 	}
 
 	public void receive(Message msg) {
-		SupplyChainMessage scMessage = msg.getObject();
+		String msgStr = msg.getObject();
+		SupplyChainMessage scMessage = gson.fromJson(msgStr, SupplyChainMessage.class);
 		
 		switch (scMessage.getType()) {
 			case PUBLISHE_BLOCK: {
@@ -122,7 +122,6 @@ public class GroupServers extends ReceiverAdapter {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	public void setState(InputStream input) throws Exception {
 
 	}

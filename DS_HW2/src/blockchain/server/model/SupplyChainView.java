@@ -57,16 +57,16 @@ public class SupplyChainView {
 	}
 
 	public void addToBlockChain(Block block) {
-		rwl.acquireWrite();
+//		rwl.acquireWrite();
 		if (block.getDepth() != this.knownBlocksDepth + 1) {
-			rwl.releaseWrite();
+//			rwl.releaseWrite();
 			return;
 		}
 			
 		blockChain.add(block);
 		knownBlocksPath = knownBlocksPath + "/" + block.getBlockName();
 		this.knownBlocksDepth++;
-		rwl.releaseWrite();
+//		rwl.releaseWrite();
 	}
 	
 	
