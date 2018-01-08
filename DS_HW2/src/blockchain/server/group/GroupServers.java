@@ -101,7 +101,6 @@ public class GroupServers extends ReceiverAdapter {
 			}
 			
 			case ACK: {
-				System.out.println("@@@ recived ACK");
 				rStack.addIfRelevant(scMessage);
 				break;
 			}

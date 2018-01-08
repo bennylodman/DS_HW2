@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.zookeeper.KeeperException;
 
+import com.google.gson.Gson;
+
 import blockchain.server.group.BlockHandler;
 import blockchain.server.group.GroupServers;
 import blockchain.server.group.Operation;
@@ -191,7 +193,7 @@ public class DsTechShipping {
 	
 //	public static QueryResult getDocState(String id) {} //TODO
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		DsTechShipping.initialize();
         
 		try {
@@ -202,21 +204,57 @@ public class DsTechShipping {
         }
         
         try {
-        	System.out.println("trying to create ship ..");
-        	TransactionResult tr = createShip("S_titanic", "Haifa");
-        	System.out.println("Status:" + tr.getStatus());
-        	System.out.println("Message:" + tr.getMessage());
+        	TransactionResult tr1 = createShip("S_titanic", "Haifa");
+        	System.out.println("Status:" + tr1.getStatus());
+        	System.out.println("Message:" + tr1.getMessage());
         	System.out.println("ship Created ..");
+        	
+        	TransactionResult tr2 = createContainer("C_1", "S_titanic");
+        	System.out.println("Status:" + tr2.getStatus());
+        	System.out.println("Message:" + tr2.getMessage());
+        	System.out.println("container C_1 Created ..");
+        	
+        	TransactionResult tr3 = createContainer("C_2", "S_titanic");
+        	System.out.println("Status:" + tr3.getStatus());
+        	System.out.println("Message:" + tr3.getMessage());
+        	System.out.println("container C_2 Created ..");
+        	
+        	TransactionResult tr4 = createItem("I_1", "C_1");
+        	System.out.println("Status:" + tr4.getStatus());
+        	System.out.println("Message:" + tr4.getMessage());
+        	System.out.println("item I_1 Created ..");
+        	
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
         
+    	TransactionResult tr5 = createContainer("C_3", "S_a");
+    	System.out.println("Status:" + tr5.getStatus());
+    	System.out.println("Message:" + tr5.getMessage());
+    	System.out.println("container C_3 Created ..");
+    	
+    	
+    	TransactionResult tr6 = moveSupplyChainObject("S_a", "London", "Haifa");
+    	System.out.println("Status:" + tr6.getStatus());
+    	System.out.println("Message:" + tr6.getMessage());
+    	System.out.println("moving ship to haifa ..");
+    	
         try {
-            TimeUnit.SECONDS.sleep(60);
+            TimeUnit.SECONDS.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
             assert(false);
         }
+        
+    	
+        Gson gson = new Gson();
+        System.out.println("get S_a ship history");
+        QueryResult qr = getShipHistory("S_a");
+    	System.out.println("Message:" + qr.getMessage());
+    	for (SupplyChainObject sObject : qr.getRequestedObjects()) {
+    		Ship p = (Ship) sObject;
+    		System.out.println(gson.toJson(p));
+    	}
         
 	}
 }
