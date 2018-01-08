@@ -1,8 +1,10 @@
 package blockchain.server.group;
 
+import java.time.format.DecimalStyle;
 import java.util.ArrayList;
 import java.util.List;
 
+import blockchain.server.DsTechShipping;
 import blockchain.server.model.Container;
 import blockchain.server.model.Item;
 import blockchain.server.model.Ship;
@@ -24,9 +26,12 @@ public class BlockHandler {
 	}
 	
 	public TransactionResult addTransaction(Transaction trans) {
-		scMessage.getBlock().addTransaction(trans);
-		WaitingObject waitingObj = new WaitingObject();
-		waitingThreadObjects.add(waitingObj);
+		WaitingObject waitingObj;
+		synchronized (DsTechShipping.blockHandlerLock) {
+			scMessage.getBlock().addTransaction(trans);
+			waitingObj = new WaitingObject();
+			waitingThreadObjects.add(waitingObj);
+		}
 		
 		while (!waitingObj.isDone()) {
 			waitingObj.lock();
@@ -40,7 +45,7 @@ public class BlockHandler {
 		WaitingObject waitingObj = waitingThreadObjects.get(transIndex);
 		waitingThreadObjects.remove(transIndex);
 		waitingObj.setResult(resStatus, resMessage);
-		waitingObj.done();
+//		waitingObj.done();
 		waitingObj.notifyWaitingThread();
 	}
 
@@ -148,12 +153,17 @@ class WaitingObject {
 	public void notifyWaitingThread() {
 		synchronized (this.lock) {
 			this.lock.notifyAll();
+			this.done = true;
 		}
 	}
 	
 	public void lock() {
 		synchronized (this.lock) {
 			try {
+				if (this.done){
+					return;
+				}
+				
 				this.lock.wait();
 			} catch (InterruptedException e) {}
 		}
@@ -180,12 +190,16 @@ class WaitingObject {
 		return this.result.getMessage();
 	}
 	
-	public synchronized void done() {
-		this.done = true;
-	}
+//	public void done() {
+//		synchronized (lock) {
+//			this.done = true;
+//		}
+//	}
 	
-	public synchronized boolean isDone() {
-		return this.done;
+	public boolean isDone() {
+		synchronized (lock) {
+			return this.done;
+		}
 	}
 
 }

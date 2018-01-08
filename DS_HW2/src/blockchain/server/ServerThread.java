@@ -3,7 +3,6 @@ package blockchain.server;
 import blockchain.server.group.BlockHandler;
 import blockchain.server.group.MessageType;
 import blockchain.server.group.UpdateViewHandler;
-import blockchain.server.model.Block;
 import blockchain.server.model.BlockHeader;
 import blockchain.server.model.SupplyChainMessage;
 import blockchain.server.model.SupplyChainView;
@@ -169,6 +168,7 @@ public class ServerThread extends Thread {
 
         while(true)
         {
+        	System.out.println("@@@ new Iteration");
             /*If handel new block*/
             if(blockToAddTheChain == null)
             {
@@ -187,7 +187,7 @@ public class ServerThread extends Thread {
                 goToSleep();
                 continue;
             }
-
+            System.out.println("@@@ get not empty block");
             /*Lock Global view for read - does not change during build of current view*/
             DsTechShipping.view.getRWLock().acquireRead();
 
@@ -199,17 +199,21 @@ public class ServerThread extends Thread {
 
             /*Verify that block is legal - after this function need to check that it is not empty*/
             blockToAddTheChain.verifyBlock(currentView);
-
+            System.out.println("@@@ verify blocks block");
             /*Check if block empty (All transactions were illegal) -> finish loop and wait for next cycle*/
             if(blockToAddTheChain.size() == 0)
             {
+            	System.out.println("@@@ block is empty after verifing");
                 blockToAddTheChain = null;
                 goToSleep();
                 continue;
             }
+            
+            System.out.println("@@@ block is NOT empty after verifing");
+            
 
             /*Create block header to insert to Znode*/
-            BlockHeader blckToZnode = new BlockHeader(currentView.getKnownBlocksDepth(),DsTechShipping.groupServers.getServerName());
+            BlockHeader blckToZnode = new BlockHeader(currentView.getKnownBlocksDepth() + 1,DsTechShipping.groupServers.getServerName());
 
             /*Try to add block to the block chain*/
             try {
@@ -228,8 +232,8 @@ public class ServerThread extends Thread {
                 /*BlockHeader was added to chain*/
 
                 /*Update block depth and name*/
-                blockToAddTheChain.getScMessage().getBlock().setDepth(currentView.getKnownBlocksDepth());
-                blockToAddTheChain.getScMessage().getBlock().setBlockName(Integer.toString(currentView.getKnownBlocksDepth()));
+                blockToAddTheChain.getScMessage().getBlock().setDepth(currentView.getKnownBlocksDepth() + 1);
+                blockToAddTheChain.getScMessage().getBlock().setBlockName(Integer.toString(currentView.getKnownBlocksDepth() + 1));
 
                 /*Send to all servers the new block and wait to MaxServersCrushSupport + update yourself*/
                 try {

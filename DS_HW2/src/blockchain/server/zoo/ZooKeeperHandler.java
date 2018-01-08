@@ -12,7 +12,7 @@ import org.apache.zookeeper.ZooKeeper;
 
 // this class will handle all work with the zookeeper server
 public class ZooKeeperHandler implements Watcher {
-	public static String ZK_ADDR = "172.20.10.3:2181,172.20.10.6:2181";
+	public static String ZK_ADDR = "192.168.1.13:2181,192.168.1.21:2181";
 	public static int ZK_PORT = 2181;
 
 	private static ZooKeeper zk;
@@ -57,7 +57,6 @@ public class ZooKeeperHandler implements Watcher {
 
 		/*Get all the Znodes sones*/
 		String smallestZnodePath = ZookeeperUtils.returnSmallestSonOfZnode(zk, path);
-		System.out.println("@@@ smallestZnodePath: " + smallestZnodePath);
 		/*Check if the node added was the smallest one*/
 		if (znodePath.equals(smallestZnodePath))
 		{
@@ -103,10 +102,10 @@ public class ZooKeeperHandler implements Watcher {
 	 *
 	 * @param serversName - server name
 	 */
-	public void addServer(String serversName)throws KeeperException, InterruptedException
+	public void addServer(String serversName) throws KeeperException, InterruptedException
 	{
-			String path = "/Servers/";
-			String serversPath = path.concat(serversName);
+			String path = "/Servers";
+			String serversPath = path + "/" + serversName;
 			if (ZookeeperUtils.getAllChildrens(zk, path).contains(serversPath))
 			{
 				/*Server with same name already in the system - not allowed*/

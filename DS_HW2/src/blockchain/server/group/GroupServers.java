@@ -69,9 +69,9 @@ public class GroupServers extends ReceiverAdapter {
 		msg.setTargetName(BRODSCST);
 		msg.setSendersName(serverName);
 		try {
-//			Gson gson = new Gson();
-//			this.channel.send(new Message(null, gson.toJson(msg)));
-			this.channel.send(new Message(null, msg));
+			System.out.println("publishBlock");
+			Gson gson = new Gson();
+			this.channel.send(new Message(null, gson.toJson(msg)));
 		} catch (Exception e) {
 			System.out.println("publishBlock: failed to send message");
 		}

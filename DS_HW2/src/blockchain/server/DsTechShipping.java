@@ -4,6 +4,8 @@ package blockchain.server;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.zookeeper.KeeperException;
+
 import blockchain.server.group.BlockHandler;
 import blockchain.server.group.GroupServers;
 import blockchain.server.group.Operation;
@@ -28,8 +30,13 @@ public class DsTechShipping {
 	public static Object blockHandlerLock = new Object();
 
 	public static void initialize() {
-		DsTechShipping.groupServers = new GroupServers(view);
-		new ServerThread().start();
+		try {
+			DsTechShipping.groupServers = new GroupServers(view);
+			DsTechShipping.zkHandler.addServer(DsTechShipping.groupServers.getServerName());
+			new ServerThread().start();
+		} catch (KeeperException | InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public static ZooKeeperHandler getZooKeeperHandler() {
@@ -65,9 +72,7 @@ public class DsTechShipping {
 	}
 	
 	public static TransactionResult addTransaction(Transaction trans) throws InterruptedException {
-		synchronized (blockHandlerLock) {
 			return blocksHandler.addTransaction(trans);
-		}
 	}
 	
 	//#############################################################
@@ -197,9 +202,11 @@ public class DsTechShipping {
         }
         
         try {
+        	System.out.println("trying to create ship ..");
         	TransactionResult tr = createShip("S_titanic", "Haifa");
         	System.out.println("Status:" + tr.getStatus());
         	System.out.println("Message:" + tr.getMessage());
+        	System.out.println("ship Created ..");
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
