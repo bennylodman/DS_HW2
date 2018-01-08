@@ -29,9 +29,7 @@ public class BlockHandler {
 		waitingThreadObjects.add(waitingObj);
 		
 		while (!waitingObj.isDone()) {
-			try {
-				waitingObj.getLock().wait();
-			} catch (InterruptedException e) {}
+			waitingObj.lock();
 		}
 		
 		return waitingObj.getResult();
@@ -43,7 +41,7 @@ public class BlockHandler {
 		waitingThreadObjects.remove(transIndex);
 		waitingObj.setResult(resStatus, resMessage);
 		waitingObj.done();
-		waitingObj.getLock().notify();
+		waitingObj.notifyWaitingThread();
 	}
 
 	public void notifySuccessToAll() {
@@ -139,12 +137,22 @@ class WaitingObject {
 		this.done = false;
 	}
 	
-	public Object getLock() {
-		return lock;
-	}
-	
+//	public Object getLock() {
+//		return lock;
+//	}
+//	
 	public TransactionResult getResult() {
 		return result;
+	}
+	
+	public void notifyWaitingThread() {
+		this.lock.notifyAll();
+	}
+	
+	public void lock() {
+		try {
+			this.lock.wait();
+		} catch (InterruptedException e) {}
 	}
 	
 	public void setResult(boolean status, String message) {

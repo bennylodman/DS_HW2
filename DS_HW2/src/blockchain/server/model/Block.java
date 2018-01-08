@@ -3,7 +3,9 @@ package blockchain.server.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Block {
+public class Block implements java.io.Serializable {
+	private static final long serialVersionUID = 6612886098841491544L;
+	
 	private String blockName;
 	private Integer depth;
 	private List<Transaction> transactions;

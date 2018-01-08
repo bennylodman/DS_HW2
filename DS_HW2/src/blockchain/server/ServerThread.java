@@ -56,6 +56,7 @@ public class ServerThread extends Thread {
 
         for(String blockString : missingBlockList)
         {
+        	System.out.println(blockString);
             block = gson.fromJson(blockString, BlockHeader.class);
 
             /*Loop while server that created the block is alive or if got the message*/
@@ -212,7 +213,7 @@ public class ServerThread extends Thread {
 
             /*Try to add block to the block chain*/
             try {
-                path = DsTechShipping.zkHandler.addBlockToBlockChain(currentView.getKnownBlocksPath(), gson.toJson(blckToZnode), currentView.getKnownBlocksDepth());
+                path = DsTechShipping.zkHandler.addBlockToBlockChain(currentView.getKnownBlocksPath(), gson.toJson(blckToZnode), currentView.getKnownBlocksDepth() + 1);
             } catch (KeeperException e) {
                 e.printStackTrace();
                 assert(false);
@@ -220,7 +221,8 @@ public class ServerThread extends Thread {
                 e.printStackTrace();
                 assert(false);
             }
-
+            System.out.println("path: " + path);
+            
             if(path != null)
             {
                 /*BlockHeader was added to chain*/

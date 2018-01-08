@@ -2,6 +2,7 @@ package blockchain.server;
 
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import blockchain.server.group.BlockHandler;
 import blockchain.server.group.GroupServers;
@@ -26,7 +27,7 @@ public class DsTechShipping {
 	public static BlockHandler blocksHandler = new BlockHandler(); // always contains 2 blocks and exactly one block is open at any time.
 	public static Object blockHandlerLock = new Object();
 
-	public void initialize() {
+	public static void initialize() {
 		DsTechShipping.groupServers = new GroupServers(view);
 		new ServerThread().start();
 	}
@@ -184,4 +185,31 @@ public class DsTechShipping {
 	}
 	
 //	public static QueryResult getDocState(String id) {} //TODO
+	
+	public static void main(String[] args) {
+		DsTechShipping.initialize();
+        
+		try {
+            TimeUnit.SECONDS.sleep(5);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            assert(false);
+        }
+        
+        try {
+        	TransactionResult tr = createShip("S_titanic", "Haifa");
+        	System.out.println("Status:" + tr.getStatus());
+        	System.out.println("Message:" + tr.getMessage());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+        
+        try {
+            TimeUnit.SECONDS.sleep(60);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            assert(false);
+        }
+        
+	}
 }

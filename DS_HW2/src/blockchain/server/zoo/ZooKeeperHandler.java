@@ -12,7 +12,7 @@ import org.apache.zookeeper.ZooKeeper;
 
 // this class will handle all work with the zookeeper server
 public class ZooKeeperHandler implements Watcher {
-	public static String ZK_ADDR = "172.20.10.5:2181,172.20.10.3:2181";
+	public static String ZK_ADDR = "172.20.10.3:2181,172.20.10.6:2181";
 	public static int ZK_PORT = 2181;
 
 	private static ZooKeeper zk;
@@ -57,7 +57,7 @@ public class ZooKeeperHandler implements Watcher {
 
 		/*Get all the Znodes sones*/
 		String smallestZnodePath = ZookeeperUtils.returnSmallestSonOfZnode(zk, path);
-
+		System.out.println("@@@ smallestZnodePath: " + smallestZnodePath);
 		/*Check if the node added was the smallest one*/
 		if (znodePath.equals(smallestZnodePath))
 		{
@@ -120,7 +120,7 @@ public class ZooKeeperHandler implements Watcher {
 	 * the function receive a path to znode in the block chain and return the delta from
 	 * this path to the end of the block chain
 	 *
-	 * @param path - server name
+	 * @param path - 
 	 */
 	public String getCahinSuffix(String path)throws KeeperException, InterruptedException
 	{
@@ -129,8 +129,7 @@ public class ZooKeeperHandler implements Watcher {
 		{
 			currentPath = getSmallestZnodeName(ZookeeperUtils.getAllChildrens(zk,currentPath));
 		}
-
-		currentPath.replaceFirst(path, "");
+		currentPath = currentPath.replace(path, "");
 		return currentPath;
 	}
 

@@ -76,6 +76,7 @@ public class ZookeeperUtils {
 	 */
 	public static String returnSmallestSonOfZnode(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
 		List<String> childrenList = zk.getChildren(path, false);
+		System.out.println(childrenList);
 		String smallest = childrenList.get(0);
 		for (String child : childrenList)
 		{
@@ -84,7 +85,8 @@ public class ZookeeperUtils {
 				smallest = child;
 			}
 		}
-		return smallest;
+		System.out.println(smallest);
+		return path + "/" + smallest;
 	}
 
 	/**

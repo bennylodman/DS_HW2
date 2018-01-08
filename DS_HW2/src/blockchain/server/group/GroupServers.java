@@ -1,14 +1,18 @@
 package blockchain.server.group;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
+import org.jgroups.View;
+import com.google.gson.Gson;
 
 import blockchain.server.DsTechShipping;
-import blockchain.server.model.Container;
+import blockchain.server.model.Block;
 import blockchain.server.model.SupplyChainMessage;
 import blockchain.server.model.SupplyChainView;
 
@@ -22,11 +26,13 @@ public class GroupServers extends ReceiverAdapter {
 	private ResponseStack rStack;
 	
 	public GroupServers(SupplyChainView view) {
+		this.rStack = new ResponseStack();
 		this.view = view;
 		try {
 			channel = new JChannel("config/tcp.xml");
 			channel.setReceiver(this);
 			channel.connect("GroupServers");
+			channel.getState(null, 10000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -63,6 +69,8 @@ public class GroupServers extends ReceiverAdapter {
 		msg.setTargetName(BRODSCST);
 		msg.setSendersName(serverName);
 		try {
+//			Gson gson = new Gson();
+//			this.channel.send(new Message(null, gson.toJson(msg)));
 			this.channel.send(new Message(null, msg));
 		} catch (Exception e) {
 			System.out.println("publishBlock: failed to send message");
@@ -102,5 +110,20 @@ public class GroupServers extends ReceiverAdapter {
 				break;
 			}
 		}
+	}
+	
+	
+	public void viewAccepted(View new_view) {
+		System.out.println("** view: " + new_view);
+	}
+
+
+	public void getState(OutputStream output) throws Exception {
+
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setState(InputStream input) throws Exception {
+
 	}
 }

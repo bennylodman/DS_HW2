@@ -2,7 +2,9 @@ package blockchain.server.model;
 
 import blockchain.server.group.Operation;
 
-public class Transaction {
+public class Transaction implements java.io.Serializable {
+	private static final long serialVersionUID = -5336929627744054412L;
+	
 	private String objectId;
 	private Operation operationType;
 	private String source;

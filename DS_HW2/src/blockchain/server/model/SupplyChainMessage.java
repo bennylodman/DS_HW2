@@ -2,7 +2,9 @@ package blockchain.server.model;
 
 import blockchain.server.group.MessageType;
 
-public class SupplyChainMessage {
+public class SupplyChainMessage implements java.io.Serializable {
+	private static final long serialVersionUID = 1645562847145162541L;
+	
 	private String sendersName;
 	private String targetName;
 	private MessageType type;
