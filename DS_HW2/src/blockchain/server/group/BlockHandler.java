@@ -146,13 +146,17 @@ class WaitingObject {
 	}
 	
 	public void notifyWaitingThread() {
-		this.lock.notifyAll();
+		synchronized (this.lock) {
+			this.lock.notifyAll();
+		}
 	}
 	
 	public void lock() {
-		try {
-			this.lock.wait();
-		} catch (InterruptedException e) {}
+		synchronized (this.lock) {
+			try {
+				this.lock.wait();
+			} catch (InterruptedException e) {}
+		}
 	}
 	
 	public void setResult(boolean status, String message) {
