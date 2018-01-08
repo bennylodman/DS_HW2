@@ -14,6 +14,7 @@ public class UpdateViewHandler extends Thread {
 	private JChannel channel;
 	private String serverName;
 	private ZooKeeperHandler zkh;
+	private static Object waitingPoint = new Object();
 	
 	public UpdateViewHandler(SupplyChainView view, SupplyChainMessage message, JChannel channel, String serverName, ZooKeeperHandler zkh) {
 		this.view = view;
@@ -37,33 +38,32 @@ public class UpdateViewHandler extends Thread {
 		} catch (Exception e) {
 			System.out.println("RequestBlockHandler: failed to send message. error: " + e.getMessage());
 		}
-    	// update local view.
-		//TODO: Need to make sure that this is o.k - in case block is already in the system we need to do nothing
-		//Benny - I need to wait until view is updated before waking up all the rest threads
-		// that wy I called this function after getting ack from servers that got the new block
-		// othe option to wait until this will happen and wait on buisy wait...
-    	if(!(message.getBlock().getDepth() <= view.getKnownBlocksDepth()))
-        {
-            while (message.getBlock().getDepth() != view.getKnownBlocksDepth() + 1) {
+    	
+    	synchronized(waitingPoint) {
+    		// update local view.
+        	if(message.getBlock().getDepth() > view.getKnownBlocksDepth())
+            {
+                while (message.getBlock().getDepth() != view.getKnownBlocksDepth() + 1) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {}
+                }
+                
+                view.getRWLock().acquireWrite();
+                boolean isExsit;
                 try {
-                    view.wait();
-                } catch (InterruptedException e) {}
+    				isExsit = zkh.checkIfServerExist(message.getSendersName());
+    			} catch (KeeperException | InterruptedException e) {
+    				isExsit = false;
+    			}
+                
+                if (isExsit) {
+                	message.getBlock().applyTransactions(view);
+                    view.addToBlockChain(message.getBlock());
+                }
+                notifyAll();
+                view.getRWLock().releaseWrite();
             }
-            
-            view.getRWLock().acquireWrite();
-            boolean isExsit;
-            try {
-				isExsit = zkh.checkIfServerExist(message.getSendersName());
-			} catch (KeeperException | InterruptedException e) {
-				isExsit = false;
-			}
-            
-            if (isExsit) {
-            	message.getBlock().applyTransactions(view);
-                view.addToBlockChain(message.getBlock());
-            }
-            view.notifyAll();
-            view.getRWLock().releaseWrite();
-        }
+    	}
     }
 }
