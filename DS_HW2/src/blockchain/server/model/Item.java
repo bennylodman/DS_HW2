@@ -122,7 +122,7 @@ public class Item extends SupplyChainObject {
 		if (trgContainer.isDeleted())
 			return new TransactionResult(false, "ERROR: The object " + trgContainer.getId() + " has been deleted");
 		
-		if (this.container != src)
+		if (!this.container.equals(src))
 			return new TransactionResult(false, "ERROR: The item " + this.getId() + " is not in the container " + src);
 		
 		if (srcContainer.getDoc() != trgContainer.getDoc())

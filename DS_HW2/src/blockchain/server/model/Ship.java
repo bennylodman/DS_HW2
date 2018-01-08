@@ -79,7 +79,9 @@ public class Ship extends SupplyChainObject {
 	}
 	
 	public TransactionResult verifyMove(String src, String trg, SupplyChainView currentView) {
-		if (this.doc != src)
+		System.out.println("this.doc: " + this.doc);
+		System.out.println("src: " + src);
+		if (!this.doc.equals(src))
 			return new TransactionResult(false, "ERROR: The ship " + this.getId() + " is not anchored in the dock " + src);
 		
 		if (this.isDeleted())

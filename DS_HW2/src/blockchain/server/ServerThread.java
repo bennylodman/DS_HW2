@@ -168,7 +168,6 @@ public class ServerThread extends Thread {
 
         while(true)
         {
-        	System.out.println("@@@ new Iteration");
             /*If handel new block*/
             if(blockToAddTheChain == null)
             {
@@ -187,7 +186,6 @@ public class ServerThread extends Thread {
                 goToSleep();
                 continue;
             }
-            System.out.println("@@@ get not empty block");
             /*Lock Global view for read - does not change during build of current view*/
             DsTechShipping.view.getRWLock().acquireRead();
 
@@ -199,19 +197,14 @@ public class ServerThread extends Thread {
 
             /*Verify that block is legal - after this function need to check that it is not empty*/
             blockToAddTheChain.verifyBlock(currentView);
-            System.out.println("@@@ verify blocks block");
             /*Check if block empty (All transactions were illegal) -> finish loop and wait for next cycle*/
             if(blockToAddTheChain.size() == 0)
             {
-            	System.out.println("@@@ block is empty after verifing");
                 blockToAddTheChain = null;
                 goToSleep();
                 continue;
             }
             
-            System.out.println("@@@ block is NOT empty after verifing");
-            
-
             /*Create block header to insert to Znode*/
             BlockHeader blckToZnode = new BlockHeader(currentView.getKnownBlocksDepth() + 1,DsTechShipping.groupServers.getServerName());
 
@@ -223,15 +216,14 @@ public class ServerThread extends Thread {
                 assert(false);
             } 
             
-            System.out.println("path: " + path);
-            
             if(path != null)
             {
                 /*BlockHeader was added to chain*/
 
                 /*Update block depth and name*/
+            	String currentNodeName = path.substring(path.lastIndexOf("/") + 1);
                 blockToAddTheChain.getScMessage().getBlock().setDepth(currentView.getKnownBlocksDepth() + 1);
-                blockToAddTheChain.getScMessage().getBlock().setBlockName(Integer.toString(currentView.getKnownBlocksDepth() + 1));
+                blockToAddTheChain.getScMessage().getBlock().setBlockName(currentNodeName);
 
                 /*Send to all servers the new block and wait to MaxServersCrushSupport + update yourself*/
                 try {
