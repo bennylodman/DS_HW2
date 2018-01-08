@@ -4,6 +4,8 @@ import org.apache.zookeeper.KeeperException;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 
+import com.google.gson.Gson;
+
 import blockchain.server.model.SupplyChainMessage;
 import blockchain.server.model.SupplyChainView;
 import blockchain.server.zoo.ZooKeeperHandler;
@@ -14,6 +16,7 @@ public class UpdateViewHandler extends Thread {
 	private JChannel channel;
 	private String serverName;
 	private ZooKeeperHandler zkh;
+	private Gson gson = new Gson();
 	private static Object waitingPoint = new Object();
 	
 	public UpdateViewHandler(SupplyChainView view, SupplyChainMessage message, JChannel channel, String serverName, ZooKeeperHandler zkh) {
@@ -33,7 +36,7 @@ public class UpdateViewHandler extends Thread {
 		
     	try {
 			synchronized (channel) {
-				channel.send(new Message(null, resopnse));
+				channel.send(new Message(null, gson.toJson(resopnse)));
 			}
 		} catch (Exception e) {
 			System.out.println("RequestBlockHandler: failed to send message. error: " + e.getMessage());

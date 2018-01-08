@@ -3,6 +3,8 @@ package blockchain.server.group;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 
+import com.google.gson.Gson;
+
 import blockchain.server.model.Block;
 import blockchain.server.model.SupplyChainMessage;
 import blockchain.server.model.SupplyChainView;
@@ -12,6 +14,7 @@ public class RequestBlockHandler extends Thread {
 	private SupplyChainMessage message;
 	private JChannel channel;
 	private String serverName;
+	private Gson gson = new Gson();
 	
 	public RequestBlockHandler(SupplyChainView view, SupplyChainMessage message, JChannel channel, String serverName) {
 		this.view = view;
@@ -35,7 +38,7 @@ public class RequestBlockHandler extends Thread {
     	
     	try {
 			synchronized (channel) {
-				channel.send(new Message(null, resopnse));
+				channel.send(new Message(null, gson.toJson(resopnse)));
 			}
 		} catch (Exception e) {
 			System.out.println("RequestBlockHandler: failed to send message. error: " + e.getMessage());
