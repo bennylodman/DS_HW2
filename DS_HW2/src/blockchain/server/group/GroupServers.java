@@ -53,7 +53,7 @@ public class GroupServers extends ReceiverAdapter {
 	}
 	
 	public void requestBlock(int blockDepth) {
-		rStack.reset(blockDepth);
+		rStack.reset(blockDepth, MessageType.RESPONSE_BLOCK);
 		SupplyChainMessage scMessage = new SupplyChainMessage(MessageType.REQUEST_BLOCK);
 		scMessage.setArgs(String.valueOf(blockDepth));
 		scMessage.setTargetName(BRODSCST);
@@ -66,7 +66,7 @@ public class GroupServers extends ReceiverAdapter {
 	}
 	
 	public void publishBlock(SupplyChainMessage msg) {
-		rStack.reset(msg.getBlock().getDepth());
+		rStack.reset(msg.getBlock().getDepth(), MessageType.ACK);
 		msg.setTargetName(BRODSCST);
 		msg.setSendersName(serverName);
 		try {
@@ -101,6 +101,7 @@ public class GroupServers extends ReceiverAdapter {
 			}
 			
 			case ACK: {
+				System.out.println("@@@ recived ACK");
 				rStack.addIfRelevant(scMessage);
 				break;
 			}

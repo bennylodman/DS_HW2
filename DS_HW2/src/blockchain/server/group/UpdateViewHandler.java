@@ -33,6 +33,7 @@ public class UpdateViewHandler extends Thread {
 		SupplyChainMessage resopnse = new SupplyChainMessage(MessageType.ACK);
 		resopnse.setTargetName(message.getSendersName());
 		resopnse.setSendersName(serverName);
+		resopnse.setArgs(String.valueOf(message.getBlock().getDepth()));
 		
     	try {
 			synchronized (channel) {

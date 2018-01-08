@@ -218,13 +218,11 @@ public class ServerThread extends Thread {
             /*Try to add block to the block chain*/
             try {
                 path = DsTechShipping.zkHandler.addBlockToBlockChain(currentView.getKnownBlocksPath(), gson.toJson(blckToZnode), currentView.getKnownBlocksDepth() + 1);
-            } catch (KeeperException e) {
+            } catch (KeeperException | InterruptedException e) {
                 e.printStackTrace();
                 assert(false);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                assert(false);
-            }
+            } 
+            
             System.out.println("path: " + path);
             
             if(path != null)

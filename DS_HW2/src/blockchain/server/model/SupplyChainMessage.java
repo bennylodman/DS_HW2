@@ -1,6 +1,7 @@
 package blockchain.server.model;
 
 import blockchain.server.group.MessageType;
+import utils.GeneralUtilities;
 
 public class SupplyChainMessage implements java.io.Serializable {
 	private static final long serialVersionUID = 1645562847145162541L;
@@ -59,4 +60,9 @@ public class SupplyChainMessage implements java.io.Serializable {
 	public void setArgs(String args) {
 		this.args = args;
 	}
+	
+	public SupplyChainMessage deepCopy() {
+		return GeneralUtilities.deepCopy(this, SupplyChainMessage.class);
+	}
+	
 }
